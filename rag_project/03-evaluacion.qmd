@@ -1,0 +1,5 @@
+---
+title: "3. Sin RAG frente a con RAG"
+---
+
+<!-- P2. Las preguntas, tabla de resultados/comparativa.csv con los veredictos, dos o tres casos comentados (lo que se inventa el LLM y lo que responde con RAG citando el trozo) y el recuento final. -->

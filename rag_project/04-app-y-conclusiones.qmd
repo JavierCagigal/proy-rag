@@ -1,0 +1,5 @@
+---
+title: "4. App y conclusiones"
+---
+
+<!-- P3 + todos. Captura y enlace a la app, cómo se despliega, qué LLM usa y por qué, extras (fase E) si los hay, limitaciones y conclusiones. -->

@@ -1,0 +1,12 @@
+---
+title: "Deporte con IA"
+---
+
+## Grupo 3
+
+*Alejandro, Miguel y Javier*
+
+## Trabajo 2: sistema RAG
+
+<!-- Motivación (P3 con todos): qué pregunta un triatleta que un chatbot genérico contesta mal,
+por qué un RAG lo arregla y enlaces a la app desplegada y al repositorio. -->

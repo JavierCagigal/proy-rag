@@ -1,0 +1,5 @@
+---
+title: "2. Arquitectura y chunking"
+---
+
+<!-- P2. Esquema del RAG, por qué LangChain + Chroma + multilingual-e5-small, y el experimento de chunking: tabla de resultados/chunking.csv, gráfico y tamaño elegido con su porqué. -->

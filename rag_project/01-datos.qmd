@@ -1,0 +1,5 @@
+---
+title: "1. Datos"
+---
+
+<!-- P1. Fuentes (qué, de dónde, licencia), cómo funciona pipeline.py con extractos de código explicados, cuántas páginas por fuente y ejemplo de texto antes y después de limpiar. -->
