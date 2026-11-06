@@ -1,0 +1,33 @@
+project:
+  type: website
+  render:
+    - index.qmd
+    - "rag_project/*.qmd"
+
+execute:
+  freeze: auto
+
+website:
+  title: "Deporte con IA"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Inicio
+      - text: RAG
+        menu:
+          - href: rag_project/01-datos.qmd
+            text: "1. Datos"
+          - href: rag_project/02-arquitectura.qmd
+            text: "2. Arquitectura y chunking"
+          - href: rag_project/03-evaluacion.qmd
+            text: "3. Sin RAG frente a con RAG"
+          - href: rag_project/04-app-y-conclusiones.qmd
+            text: "4. App y conclusiones"
+    right:
+      - icon: github
+        href: https://github.com/JavierCagigal/proy-rag
+
+format:
+  html:
+    theme: cosmo
+    toc: true

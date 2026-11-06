@@ -1,0 +1,14 @@
+pandas
+requests
+beautifulsoup4
+pypdf
+langchain
+langchain-community
+langchain-text-splitters
+langchain-chroma
+langchain-huggingface
+langchain-ollama
+sentence-transformers
+streamlit
+jupyter
+matplotlib
