@@ -270,6 +270,6 @@ En las de medicamentos, la respuesta esperada se comprueba a mano en CIMA y en l
 
 ## 11. Si usáis una IA (Antigravity, Claude, ChatGPT…)
 
-Pegadle esto al empezar:
+Las reglas y las decisiones ya tomadas para la IA están en [AGENTS.md](AGENTS.md). Si vuestro agente no lo lee solo, pegadle esto al empezar:
 
-> Estoy en un proyecto de clase (RAG con LangChain + Chroma + Ollama + Streamlit). Somos novatos en Python y cada uno tiene que **defender su código en una exposición**. Lee `GUIA_PROYECTO.md`. **Guíame, no me lo escribas**: explícame los pasos, revisa mi código, encuentra errores y propón correcciones pequeñas. Código completo solo si te lo pido expresamente. Respeta lo que une cada parte (apartado 4) y no añadas librerías sin preguntar. Responde en español.
+> Estoy en un proyecto de clase (RAG con LangChain + Chroma + Ollama + Streamlit). Somos novatos en Python y cada uno tiene que **defender su código en una exposición**. Lee `AGENTS.md` y `GUIA_PROYECTO.md`. **Guíame, no me lo escribas**: explícame los pasos, revisa mi código, encuentra errores y propón correcciones pequeñas. Código completo solo si te lo pido expresamente. Respeta lo que une cada parte (apartado 4) y no añadas librerías sin preguntar. Responde en español.
