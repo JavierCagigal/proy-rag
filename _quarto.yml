@@ -21,8 +21,10 @@ website:
             text: "2. Arquitectura y chunking"
           - href: rag_project/03-evaluacion.qmd
             text: "3. Sin RAG frente a con RAG"
-          - href: rag_project/04-app-y-conclusiones.qmd
-            text: "4. App y conclusiones"
+          - href: rag_project/04-app.qmd
+            text: "4. App"
+          - href: rag_project/05-conclusiones.qmd
+            text: "5. Conclusiones"
     right:
       - icon: github
         href: https://github.com/JavierCagigal/proy-rag
