@@ -1,6 +1,6 @@
 # proy-rag
 
-Sistema RAG sobre deporte de resistencia (Trabajo 2, Grupo 3: Alejandro, Miguel y Javier). El código está en `rag_project/` y el informe es una web hecha con Quarto.
+Asistente de competición para triatletas con RAG: reglamento, antidopaje y "¿me da positivo?" con medicamentos españoles (Trabajo 2, Grupo 3: Alejandro, Miguel y Javier). El código está en `rag_project/` y el informe es una web hecha con Quarto.
 
 Cómo está planteado y quién hace qué: [GUIA_PROYECTO.md](GUIA_PROYECTO.md).
 

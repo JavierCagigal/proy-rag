@@ -24,11 +24,12 @@ Un **RAG** (*Retrieval-Augmented Generation*) sobre un subtema de nuestra temát
 
 ---
 
-## 2. El tema: qué propongo y por qué
+## 2. El tema: asistente de competición para triatletas ✅ decidido
 
-### Propuesta: asistente para triatlón y deportes de resistencia
+Un asistente que contesta lo que un triatleta pregunta antes de una carrera y un chatbot genérico contesta mal. Tiene dos partes:
 
-Un asistente que contesta lo que un triatleta (o alguien que entrena en serio) pregunta y un chatbot genérico contesta mal: **reglamento de competición, antidopaje y suplementación**.
+1. **Reglamento y antidopaje**: penalizaciones, neopreno, transiciones y qué sustancias están prohibidas.
+2. **"¿Me da positivo?"**: el deportista escribe el **nombre comercial** de un medicamento español ("Ventolin", "Frenadol"…). El RAG encuentra su principio activo y su vía de administración en CIMA (la base de datos de la Agencia Española del Medicamento) y lo cruza con la lista de la WADA.
 
 ### Por qué triatlón y no "gimnasio" en general
 
@@ -38,19 +39,23 @@ La nota depende de **demostrar que el RAG gana al LLM solo**. Eso pasa cuando la
 - **Actual**: algo que cambia cada año (el reglamento, la lista de sustancias prohibidas).
 - **De nicho**: algo que aparece poco en internet y el modelo no ha memorizado bien.
 
-Del gimnasio "en general" (cuántas series hacer, qué es una sentadilla…) el LLM ya sabe bastante, así que la diferencia con RAG sería pequeña y difícil de enseñar. El reglamento de triatlón o la lista de la WADA de este año son justo lo contrario: el LLM se inventa la cifra o da la de una versión antigua, y el RAG la saca del documento y cita la página. La parte de gimnasio no se pierde: entra por la suplementación (creatina, proteína, cafeína), que le interesa igual a alguien de gimnasio.
+Del gimnasio "en general" (cuántas series hacer, qué es una sentadilla…) el LLM ya sabe bastante, así que la diferencia con RAG sería pequeña y difícil de enseñar. El reglamento de triatlón o la lista de la WADA de este año son justo lo contrario: el LLM se inventa la cifra o da la de una versión antigua, y el RAG la saca del documento y cita la página. Con los medicamentos pasa lo mismo: el LLM no conoce los nombres comerciales españoles ni sabe qué vía de administración tiene cada presentación, y la vía cambia la respuesta (un mismo principio activo puede estar permitido inhalado y prohibido en jarabe o inyectado).
 
-### Fuentes propuestas (P1 confirma que existen, sus URLs y su licencia)
+### Fuentes (P1 confirma las URLs vigentes y la licencia)
 
 | Fuente | Tipo | Para qué preguntas |
 |---|---|---|
 | Reglamento de competición de World Triathlon (el vigente) | PDF | Drafting, penalizaciones, neopreno, transiciones |
 | Reglamento de competiciones de la Federación Española de Triatlón | PDF | Lo mismo, en español y con normas nacionales |
-| Lista de sustancias prohibidas de la WADA del año en curso | PDF | "¿Puedo tomar X en competición?" |
-| *Position stands* de la ISSN (cafeína, creatina, proteína…), artículos de acceso abierto | API (Europe PMC, gratis y sin clave) | Dosis y momento de los suplementos |
-| Opcional: un dataset de ejercicios de gimnasio de Kaggle o Hugging Face | Dataset | Preguntas de gimnasio |
+| Lista de sustancias prohibidas de la WADA del año en curso | PDF | "¿Está prohibido X? ¿Solo en competición? ¿Por qué vía?" |
+| **CIMA** (Agencia Española del Medicamento) | API REST, gratis y sin clave | "¿Qué lleva el medicamento X y cómo se toma?" |
 
-Así cumplimos lo de mezclar fuentes (PDF + API + dataset) y todo se descarga desde el script.
+Así cumplimos lo de mezclar fuentes (PDF + API) y todo se descarga desde el script.
+
+**Cómo usar CIMA** (comprobado el 20/11):
+- `https://cima.aemps.es/cima/rest/medicamentos?practiv1=salbutamol` devuelve los medicamentos que llevan ese principio activo (con salbutamol salen 20). Cada uno trae su nombre comercial, `viasAdministracion` y si necesita receta.
+- `https://cima.aemps.es/cima/rest/medicamento?nregistro=...` devuelve el detalle de uno, con `principiosActivos` y su cantidad.
+- No se descargan los 20.000 medicamentos de España: el pipeline tiene una **lista de unos 20-30 principios activos** que importan en el deporte (broncodilatadores para el asma, corticoides, descongestionantes como la pseudoefedrina, analgésicos, estimulantes…) y baja los medicamentos de cada uno. Cada medicamento se convierte en un texto corto para el corpus, por ejemplo: *"VENTOLIN 100 microgramos/inhalación. Principio activo: salbutamol. Vía: inhalatoria. Con receta."*
 
 ### Proyección
 
@@ -58,7 +63,7 @@ Así cumplimos lo de mezclar fuentes (PDF + API + dataset) y todo se descarga de
 - **Tiene uso real**: "¿este medicamento me da positivo?" o "¿me dejan usar neopreno con el agua a 22 °C?" son preguntas que un deportista se hace de verdad, y la respuesta tiene que ser exacta y con fuente.
 - **Encaja con nuestros otros proyectos de deporte**: más adelante se podría conectar con datos de entrenamiento (Garmin, por ejemplo) para responder sobre los entrenos de cada uno. Eso queda **fuera** de este trabajo.
 
-> **Decisión del grupo:** si preferís otro enfoque (por ejemplo, solo gimnasio), lo único que cambia son las fuentes y las preguntas; el resto de la guía vale igual. Pero hay que decidirlo antes de que P1 empiece a descargar.
+> **Plan B si vamos justos de tiempo:** la parte 2 (CIMA) es la más difícil. Si no llega, se entrega solo la parte 1 y la 2 se cuenta en la exposición como mejora futura.
 
 ---
 
@@ -85,6 +90,20 @@ Así cumplimos lo de mezclar fuentes (PDF + API + dataset) y todo se descarga de
 
 La idea clave: **el LLM no aprende nada nuevo**; le damos los apuntes en el momento de la pregunta.
 
+### La comparativa: el mismo modelo con y sin apuntes
+
+El RAG **usa Ollama por dentro**: no son dos modelos distintos. En la evaluación se le hace la misma pregunta al mismo modelo (qwen2.5:3b) de dos formas: **sin RAG** (solo la pregunta, contesta de memoria) y **con RAG** (la pregunta + los trozos recuperados). Como lo único que cambia es el contexto, la diferencia en las respuestas se debe al RAG.
+
+### Las preguntas de medicamentos: recuperar en dos pasos
+
+*"¿Puedo competir si uso Ventolin?"* tiene un problema: la lista de la WADA habla de **salbutamol** y nunca dice "Ventolin", así que una sola búsqueda no encuentra los dos trozos que hacen falta. Por eso `recuperar()` busca en dos pasos:
+
+1. Busca con la pregunta → sale el trozo de CIMA de Ventolin, que dice que su principio activo es el salbutamol.
+2. Vuelve a buscar con *"salbutamol"* → sale el trozo de la WADA que habla del salbutamol.
+3. Se le pasan al LLM los trozos de las dos búsquedas.
+
+Esto se llama **expansión de la consulta** y es un buen punto técnico para la exposición. El principio activo del paso 2 se saca de la metadata del trozo de CIMA (por eso `pipeline.py` lo guarda aparte, en el campo `principio_activo`).
+
 ---
 
 ## 4. Decisiones técnicas (y cómo justificarlas)
@@ -101,8 +120,9 @@ La idea clave: **el LLM no aprende nada nuevo**; le damos los apuntes en el mome
 
 **Qué une cada parte (no se cambia sin avisar a los otros):**
 
-- `pipeline.py` genera `data/processed/corpus.jsonl` con una línea por página:
+- `pipeline.py` genera `data/processed/corpus.jsonl` con una línea por página de PDF y una por medicamento:
   `{"fuente": "reglamento_world_triathlon", "url": "https://...", "pagina": 12, "texto": "..."}`
+  `{"fuente": "cima", "url": "https://cima.aemps.es/...", "pagina": null, "principio_activo": "salbutamol", "texto": "VENTOLIN 100 microgramos..."}`
 - `indexar.py` crea en `chroma/` las colecciones `trozos_300`, `trozos_800` y `trozos_1500`.
 - `rag.py` ofrece `cargar_base()`, `recuperar(base, pregunta)`, `responder_sin_rag(pregunta)` y `responder_con_rag(base, pregunta) → (respuesta, trozos)`. La app y `evaluar.py` solo usan estas funciones.
 
@@ -145,15 +165,15 @@ La guía del profesor pone 4 roles de ejemplo; somos 3, así que los juntamos as
 
 ### P1: Datos (fase A)
 - **Archivos**: `src/pipeline.py`, `01-datos.qmd`.
-- **Hace**: busca las fuentes, escribe la descarga (PDF y API), la extracción de texto página a página y la limpieza, y genera `corpus.jsonl`.
-- **Defiende**: de dónde salen los datos, por qué esas fuentes, cómo se automatiza todo y qué problemas de limpieza hubo (cabeceras repetidas, tablas que el PDF rompe…).
-- **Extra si va por delante**: añadir metadatos útiles (año, tipo de documento) para filtrar en la fase E.
+- **Hace**: la descarga de los 3 PDFs, la extracción de texto página a página y la limpieza; la lista de principios activos y la descarga desde la API de CIMA; y genera `corpus.jsonl`.
+- **Defiende**: de dónde salen los datos, por qué esas fuentes, cómo se automatiza todo, por qué esos principios activos y qué problemas de limpieza hubo (cabeceras repetidas, tablas que el PDF rompe…).
+- **Orden**: primero los PDFs (con eso P2 y P3 ya pueden trabajar) y después CIMA.
 
 ### P2: Recuperación y evaluación (fases B y C)
 - **Archivos**: `src/indexar.py`, `recuperar()` en `src/rag.py`, `src/evaluar.py`, `02-arquitectura.qmd`, `03-evaluacion.qmd`.
-- **Hace**: el chunking y los embeddings, la base Chroma, el experimento de tamaños de trozo y la comparativa sin RAG / con RAG.
-- **Defiende**: qué es un embedding, por qué ese modelo, el tamaño de trozo elegido **con datos** y los resultados de la comparativa.
-- **Extra si va por delante**: búsqueda híbrida (BM25 + vectorial) o reranking, y medir si mejora.
+- **Hace**: el chunking y los embeddings, la base Chroma, la recuperación en dos pasos para los medicamentos, el experimento de tamaños de trozo y la comparativa sin RAG / con RAG.
+- **Defiende**: qué es un embedding, por qué ese modelo, el tamaño de trozo elegido **con datos**, la expansión de la consulta y los resultados de la comparativa.
+- **Extra si va por delante (fase E)**: búsqueda híbrida (BM25 + vectorial). Aquí está muy justificada: los nombres de medicamentos y sustancias son **palabras exactas**, y en eso BM25 acierta más que los embeddings. Hay que medir si mejora con las mismas preguntas.
 
 ### P3: Generación, app y web (fase D + web)
 - **Archivos**: el resto de `src/rag.py` (prompt y LLM), `app.py`, `_quarto.yml`, `index.qmd`, `04-app-y-conclusiones.qmd`, el despliegue y la publicación.
@@ -174,25 +194,26 @@ La guía del profesor pone 4 roles de ejemplo; somos 3, así que los juntamos as
 
 ## 7. Plan y ritmo
 
-> ⚠️ **Fecha de entrega sin confirmar.** El plan supone que es el **viernes 20 de noviembre**. Si es el 13, los hitos 1-3 se hacen esta semana y la fase E se deja fuera.
+> ⚠️ **Fecha de entrega sin confirmar.** Los días cuentan desde que empezamos (día 1 = el primer día de trabajo). Si no hay tiempo para todo: primero la parte 1 completa (hitos 1-5) y CIMA solo si sobra margen.
 
 | Hito | Días | Qué tiene que estar | Quién |
 |---|---|---|---|
-| **0. Arranque** | vie 6 – dom 8 nov | Todos instalan (README) y ejecutan `quarto preview`. Tema cerrado. **Preguntas escritas.** Fuentes elegidas. | Todos |
-| **1. Primera versión de punta a punta** | lun 9 – mié 11 | Una pregunta → respuesta con cita en local, aunque sea con una sola fuente y un solo tamaño de trozo. | P1 → P2 → P3 |
-| **2. Corpus completo + evaluación** | jue 12 – vie 13 | Todas las fuentes en el corpus. `comparativa.csv` y `chunking.csv` generados y con veredictos. | P1, P2 |
-| **3. Despliegue** | jue 12 – lun 16 | App pública funcionando con su URL. | P3 |
-| **4. Web** | lun 16 – mié 18 | Las 4 páginas de Quarto con texto, código y resultados. Extra de la fase E si da tiempo. | Todos |
-| **5. Cierre** | jue 19 | PR `test` → `master`, publicar la web, URL en Loop, ensayo. | Todos |
+| **0. Arranque** | día 1 | Todos instalan (README) y ejecutan `quarto preview`. **Preguntas escritas.** URLs de los 3 PDFs confirmadas. | Todos |
+| **1. Primera versión de punta a punta** | días 2-3 | Una pregunta sobre el reglamento → respuesta con cita en local (un PDF y un solo tamaño de trozo). | P1 → P2 → P3 |
+| **2. Corpus completo + evaluación** | días 4-5 | Los 3 PDFs + CIMA en el corpus, recuperación en dos pasos. `comparativa.csv` y `chunking.csv` generados y con veredictos. | P1, P2 |
+| **3. Despliegue** | días 4-6 | App pública funcionando con su URL. | P3 |
+| **4. Web** | días 6-7 | Las 4 páginas de Quarto con texto, código y resultados. Fase E si da tiempo. | Todos |
+| **5. Cierre** | día 8 | PR `test` → `master`, publicar la web, URL en Loop, ensayo. | Todos |
 
 **Tiempo estimado por tarea** (orientativo, para gente que empieza con Python):
 
 | Tarea | Horas | Dificultad |
 |---|---|---|
 | Descargar PDFs y extraer el texto página a página | 3 | baja |
-| Descarga desde la API de Europe PMC | 2-3 | media |
+| Lista de principios activos + descarga desde CIMA | 3 | media |
 | Limpieza del texto | 2 | media |
 | Chunking + embeddings + Chroma | 3 | media |
+| Recuperación en dos pasos (medicamentos) | 2-3 | media-alta |
 | Experimento de chunking | 2-3 | media |
 | `rag.py` (prompt + Ollama) | 2-3 | media |
 | Comparativa + veredictos | 3 | baja (mucha lectura) |
@@ -213,10 +234,12 @@ Se escriben **antes** de buscar fuentes, porque son las que deciden qué documen
 2. ¿A partir de qué temperatura del agua está prohibido el neopreno en una prueba de distancia estándar?
 3. ¿Qué pasa si un triatleta deja el casco desabrochado al coger la bici?
 4. ¿Está prohibida en competición [una sustancia concreta] según la lista WADA de este año? ¿Y fuera de competición?
-5. ¿Qué dosis de cafeína por kilo de peso recomienda la ISSN y cuánto tiempo antes de la prueba?
-6. ¿Qué protocolo de carga de creatina recomienda la ISSN?
+5. Tengo asma y uso Ventolin inhalado, ¿puedo usarlo el día de la carrera? ¿Hay un límite de dosis?
+6. Estoy resfriado, ¿me da positivo tomar [un antigripal con pseudoefedrina] antes de una prueba?
 7. ¿Qué cambió en el reglamento de este año respecto al anterior? (aquí el LLM falla seguro)
 8. Una pregunta cuya respuesta **no** esté en el corpus, para comprobar que con RAG dice "no lo sé" en vez de inventar.
+
+En las de medicamentos, la respuesta esperada se comprueba a mano en CIMA y en la lista de la WADA, y se apuntan las dos fuentes.
 
 **Veredictos** (columnas a mano en `comparativa.csv`): `correcta`, `parcial`, `inventada` o `no sabe`. El resultado final es una tabla del tipo "sin RAG: 2 correctas de 8; con RAG: 7 de 8".
 
@@ -235,7 +258,7 @@ Se escriben **antes** de buscar fuentes, porque son las que deciden qué documen
 
 ## 10. Pendiente de decidir
 
-1. **¿Tema cerrado?** Triatlón y resistencia (propuesta) u otro enfoque.
+1. ~~Tema~~ → ✅ asistente de competición para triatletas: reglamento y antidopaje + medicamentos (20/11).
 2. **Fecha de entrega real.**
 3. **¿"Sin wifi" es una exigencia firme?** Si el profesor quiere verlo funcionar sin internet, la demo de la exposición se hace en local con Ollama y la app en la nube es la versión pública. Para la nube hay que elegir el LLM:
    - Una API con capa gratuita (se guarda la clave como *secret* en Streamlit Cloud, nunca en el repo).

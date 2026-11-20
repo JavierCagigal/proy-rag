@@ -2,4 +2,4 @@
 title: "2. Arquitectura y chunking"
 ---
 
-<!-- P2. Esquema del RAG, por qué LangChain + Chroma + multilingual-e5-small, y el experimento de chunking: tabla de resultados/chunking.csv, gráfico y tamaño elegido con su porqué. -->
+<!-- P2. Esquema del RAG, por qué LangChain + Chroma + multilingual-e5-small, y el experimento de chunking: tabla de resultados/chunking.csv, gráfico y tamaño elegido con su porqué. La recuperación en dos pasos para los medicamentos (expansión de la consulta) con un ejemplo. -->
