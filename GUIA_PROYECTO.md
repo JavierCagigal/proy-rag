@@ -152,7 +152,8 @@ proy-rag/
     ├── 01-datos.qmd          P1
     ├── 02-arquitectura.qmd   P2
     ├── 03-evaluacion.qmd     P2
-    └── 04-app-y-conclusiones.qmd   P3 + todos
+    ├── 04-app.qmd            P3
+    └── 05-conclusiones.qmd   P1
 ```
 
 Los `.py` son **esqueletos**: cada función tiene su explicación y los pasos en comentarios, y tiene que rellenarla quien la va a defender. Cada `.qmd` lleva un comentario con lo que debe contar.
@@ -161,29 +162,30 @@ Los `.py` son **esqueletos**: cada función tiene su explicación y los pasos en
 
 ## 6. Reparto en 3 roles
 
-La guía del profesor pone 4 roles de ejemplo; somos 3, así que los juntamos así:
+La guía del profesor pone 4 roles de ejemplo; somos 3, así que los juntamos así. **P1 = Miguel, P2 = Javier, P3 = Alejandro** (20/11).
 
-### P1: Datos (fase A)
-- **Archivos**: `src/pipeline.py`, `01-datos.qmd`.
+### P1: Datos, preguntas y conclusiones (fase A) · Miguel
+- **Archivos**: `src/pipeline.py`, `01-datos.qmd`, `evaluacion/preguntas.csv`, `05-conclusiones.qmd`.
 - **Hace**: la descarga de los 3 PDFs, la extracción de texto página a página y la limpieza; la lista de principios activos y la descarga desde la API de CIMA; y genera `corpus.jsonl`.
 - **Defiende**: de dónde salen los datos, por qué esas fuentes, cómo se automatiza todo, por qué esos principios activos y qué problemas de limpieza hubo (cabeceras repetidas, tablas que el PDF rompe…).
+- **También**: lleva las **preguntas de evaluación** (es quien más lee los PDFs: busca la respuesta exacta y la página) y escribe las **conclusiones** al final, con los resultados de todos. Así abre y cierra el proyecto.
 - **Orden**: primero los PDFs (con eso P2 y P3 ya pueden trabajar) y después CIMA.
 
-### P2: Recuperación y evaluación (fases B y C)
+### P2: Recuperación y evaluación (fases B y C) · Javier
 - **Archivos**: `src/indexar.py`, `recuperar()` en `src/rag.py`, `src/evaluar.py`, `02-arquitectura.qmd`, `03-evaluacion.qmd`.
 - **Hace**: el chunking y los embeddings, la base Chroma, la recuperación en dos pasos para los medicamentos, el experimento de tamaños de trozo y la comparativa sin RAG / con RAG.
 - **Defiende**: qué es un embedding, por qué ese modelo, el tamaño de trozo elegido **con datos**, la expansión de la consulta y los resultados de la comparativa.
 - **Extra si va por delante (fase E)**: búsqueda híbrida (BM25 + vectorial). Aquí está muy justificada: los nombres de medicamentos y sustancias son **palabras exactas**, y en eso BM25 acierta más que los embeddings. Hay que medir si mejora con las mismas preguntas.
 
-### P3: Generación, app y web (fase D + web)
-- **Archivos**: el resto de `src/rag.py` (prompt y LLM), `app.py`, `_quarto.yml`, `index.qmd`, `04-app-y-conclusiones.qmd`, el despliegue y la publicación.
+### P3: Generación, app y web (fase D + web) · Alejandro
+- **Archivos**: el resto de `src/rag.py` (prompt y LLM), `app.py`, `_quarto.yml`, `index.qmd`, `04-app.qmd`, el despliegue y la publicación.
 - **Hace**: el prompt, la conexión con el LLM, la app de Streamlit, el despliegue y la web.
 - **Defiende**: cómo se construye el prompt y por qué obliga a citar, qué LLM se usa y por qué, cómo está desplegado.
 
 ### Todos
-- Escribir juntos las **preguntas de evaluación** (lo primero de todo, ver apartado 8).
+- Proponer **preguntas de evaluación** (lo primero de todo, ver apartado 8); P1 las reúne y comprueba.
 - Poner los **veredictos** de la comparativa (uno lo propone y otro lo revisa).
-- Las conclusiones y el ensayo de la exposición.
+- Dar ideas para las conclusiones (las escribe P1) y el ensayo de la exposición.
 
 ### Cómo no bloquearnos unos a otros
 - **P1 entrega una primera versión del corpus en 1-2 días con una sola fuente** (el reglamento, por ejemplo). Con eso P2 y P3 ya pueden trabajar; el resto de fuentes se añaden después sin cambiar nada más.
@@ -202,7 +204,7 @@ La guía del profesor pone 4 roles de ejemplo; somos 3, así que los juntamos as
 | **1. Primera versión de punta a punta** | días 2-3 | Una pregunta sobre el reglamento → respuesta con cita en local (un PDF y un solo tamaño de trozo). | P1 → P2 → P3 |
 | **2. Corpus completo + evaluación** | días 4-5 | Los 3 PDFs + CIMA en el corpus, recuperación en dos pasos. `comparativa.csv` y `chunking.csv` generados y con veredictos. | P1, P2 |
 | **3. Despliegue** | días 4-6 | App pública funcionando con su URL. | P3 |
-| **4. Web** | días 6-7 | Las 4 páginas de Quarto con texto, código y resultados. Fase E si da tiempo. | Todos |
+| **4. Web** | días 6-7 | Las 5 páginas de Quarto con texto, código y resultados. Fase E si da tiempo. | Todos |
 | **5. Cierre** | día 8 | PR `test` → `master`, publicar la web, URL en Loop, ensayo. | Todos |
 
 **Tiempo estimado por tarea** (orientativo, para gente que empieza con Python):
@@ -263,7 +265,7 @@ En las de medicamentos, la respuesta esperada se comprueba a mano en CIMA y en l
 3. **¿"Sin wifi" es una exigencia firme?** Si el profesor quiere verlo funcionar sin internet, la demo de la exposición se hace en local con Ollama y la app en la nube es la versión pública. Para la nube hay que elegir el LLM:
    - Una API con capa gratuita (se guarda la clave como *secret* en Streamlit Cloud, nunca en el repo).
    - Un modelo pequeño en Hugging Face Spaces (más lento y más configuración).
-4. **Quién es P1, P2 y P3.**
+4. ~~Quién es P1, P2 y P3~~ → ✅ P1 Miguel, P2 Javier, P3 Alejandro (20/11).
 5. **¿Vamos a por la fase E?** Mi consejo: primero todo lo obligatorio (hito 4) y luego el extra.
 
 ---

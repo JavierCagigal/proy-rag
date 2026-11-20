@@ -17,7 +17,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 
 ## Reglas para la IA
 
-1. **Guía, no generes.** Somos novatos en Python y cada uno defiende su código. Explica los pasos, revisa el código, localiza errores y propón correcciones pequeñas. Escribe bloques completos solo si se piden expresamente. La infraestructura (repo, ramas, entorno, Quarto, publicación) sí la puede hacer la IA.
+1. **Código: lo escribe Javier con la IA (desde el 20/11).** La exposición sigue repartida (cada uno defiende su parte), así que todo lo que se añade se explica en [PASOS.md](PASOS.md): qué es, para qué sirve y por qué está así. Código sencillo, comentarios que expliquen el porqué y nada que no se sepa defender.
 2. **Todo en español**: respuestas, comentarios, nombres de variables y commits.
 3. **Git**: `master` y `test` están protegidas y todo entra por PR. Ramas cortas desde `test` con prefijo `datos/`, `rag/`, `eval/`, `app/`, `web/` o `infra/`. Commits que empiecen por la parte (por ejemplo, `Datos: descarga del reglamento`). Al final del proyecto, PR de `test` a `master` y publicar desde `master`.
 4. **No subir** `data/raw/`, `chroma/`, `.venv/` ni `.env`, y nunca poner claves en el código.
@@ -29,7 +29,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | Fecha | Decisión | Por qué |
 |---|---|---|
 | 06/11 | Repo nuevo y público `proy-rag`, montado igual que el del Trabajo 1 (`proy-redesneuronales`): `master` + `test` protegidas y PR obligatorio | Mismo flujo que ya conocemos |
-| 06/11 | Código en `rag_project/` + web de Quarto con 4 páginas: 01-datos, 02-arquitectura, 03-evaluacion, 04-app-y-conclusiones | Lo pide la entrega |
+| 06/11 | Código en `rag_project/` + web de Quarto con 4 páginas: 01-datos, 02-arquitectura, 03-evaluacion, 04-app-y-conclusiones (el 20/11 pasan a 5, ver abajo) | Lo pide la entrega |
 | 06/11 | Tema de deporte en vez del Nutri-Score del Trabajo 1 | Lo eligió el grupo |
 | 20/11 | **Tema: ideas 1 + 2.** (1) Reglamento de World Triathlon y de la Federación Española de Triatlón + lista de prohibidas de la WADA, en PDF. (2) "¿Me da positivo?": API de CIMA (AEMPS) para pasar del nombre comercial al principio activo y a la vía de administración, y cruzarlo con la WADA | El RAG gana cuando la respuesta es concreta, actual y de nicho (cifras del reglamento, la lista de este año, nombres comerciales españoles). Mezcla PDF y API, como pide la fase A |
 | 20/11 | Descartados: gimnasio en general, suplementos (ISSN), calendario de carreras por scraping y datos de Garmin | Gimnasio y suplementos: el LLM ya sabe bastante y la comparativa luce poco. Scraping: frágil. Garmin: son datos numéricos y para eso hace falta SQL, no un RAG |
@@ -43,6 +43,16 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | Fase E (si da tiempo): **BM25 + vectorial** | Los nombres de medicamentos y sustancias son palabras exactas, y ahí BM25 acierta más |
 | 20/11 | Plan B: si no da tiempo, se entrega solo la idea 1 y la 2 se presenta como mejora futura | CIMA es la parte más difícil |
 | 20/11 | Interfaz en **Streamlit** | Un solo archivo, y Streamlit Cloud despliega desde el repo |
+| 20/11 | **Reparto**: P1 Miguel, P2 Javier, P3 Alejandro. P1 lleva también las preguntas de evaluación y las conclusiones | La parte de datos es la más corta y P1 es quien más lee los PDFs; así abre y cierra el proyecto |
+| 20/11 | La web pasa a **5 páginas**: la 04 se separa en `04-app.qmd` (P3) y `05-conclusiones.qmd` (P1) | Cada página tiene un solo responsable y no se pisan en git |
+| 20/11 | **Javier escribe todo el código con la IA**; Miguel y Alejandro exponen su parte. Se lleva un diario en `PASOS.md` | Decisión del grupo. El diario es para que cada uno pueda defender lo que expone |
+| 20/11 | Fuentes: World Triathlon Competition Rules 2026, FETRI Reglamento de Competiciones 2026 (Circular 4/26), WADA 2026 Prohibited List (inglés). Las URL están en `pipeline.py` | Las vigentes en las webs oficiales el 20/11. La WADA exige `User-Agent` de navegador |
+| 20/11 | CIMA: **24 principios activos**, solo medicamentos comercializados y de marca (637) | Los genéricos ya llevan el principio activo en el nombre; las marcas son lo que el LLM no sabe |
+| 20/11 | `preguntas.csv` lleva además la columna `dato_clave` (regex del dato exacto); en `fuente`, `+` = hacen falta las dos y `\|` = vale cualquiera | Mide si el trozo contiene la cifra y no solo la página; la FETRI copia el reglamento de World Triathlon |
+| 20/11 | **Tamaño de trozo: 800** (dato exacto en 8/9 preguntas; 300 → 4/9; 1500 → 8/9 con un 77 % más de texto) | Medido con `evaluar.py chunking` |
+| 20/11 | `recuperar()`: búsqueda general + búsqueda solo en CIMA con umbral 0,85; si es de medicamentos, contexto = CIMA (2) + WADA por significado y por palabra exacta (`$contains`). `pipeline.py` descarta las páginas de índice alfabético | Cada paso arregla un fallo medido; detalle en PASOS.md, apartados 2 y 5 |
+| 20/11 | Resultado con qwen2.5:3b: sin RAG 0 correctas y 9 inventadas; con RAG 2 correctas, 4 parciales, 2 inventadas y 2 "no sabe" (veredictos propuestos, por revisar) | La recuperación acierta 8/9; el cuello de botella es leer el contexto con un modelo de 3B. Con 3 GB libres no cabe uno local mayor |
+| 20/11 | Ollama con `num_ctx=8192` y `temperature=0` | Sin `num_ctx` Ollama corta el contexto sin avisar; temperatura 0 para que la comparativa se pueda repetir |
 
 ## Lo que une cada parte (no se cambia sin avisar al resto)
 
@@ -63,24 +73,22 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 
 ## Reparto
 
-- **P1, datos**: `pipeline.py` y la página 01.
-- **P2, recuperación y evaluación**: `indexar.py`, `recuperar()`, `evaluar.py` y las páginas 02 y 03.
-- **P3, generación, app y web**: el resto de `rag.py`, `app.py`, el despliegue, Quarto y la página 04.
-- **Todos**: preguntas de evaluación, veredictos y conclusiones.
-- Todavía no se ha decidido quién es P1, P2 y P3.
+- **P1, datos, preguntas y conclusiones (Miguel)**: `pipeline.py`, `preguntas.csv` (reúne y comprueba las preguntas de evaluación) y las páginas 01 y 05.
+- **P2, recuperación y evaluación (Javier)**: `indexar.py`, `recuperar()`, `evaluar.py` y las páginas 02 y 03.
+- **P3, generación, app y web (Alejandro)**: el resto de `rag.py`, `app.py`, el despliegue, Quarto y la página 04.
+- **Todos**: proponer preguntas, veredictos (uno propone y otro revisa) e ideas para las conclusiones.
 
 ## Estado (20/11)
 
-- En `test`: la guía, los esqueletos y el tema (PR #1 y #2). `master` solo tiene el README inicial.
-- Todavía no hay código escrito, ni datos, ni preguntas (`preguntas.csv` solo tiene la cabecera).
-- En el Mac de Javier: `.venv` creado con Python 3.14 y todo `requirements.txt` instalado. Ollama instalado, todavía sin modelo (falta `ollama pull qwen2.5:3b`).
+- En `test`: la guía, los esqueletos, el tema y este archivo (PR #1, #2 y #3). El PR #4 (reparto) está abierto.
+- Rama `datos/pipeline` (encima del PR #4): fases A, B y C hechas y probadas en el Mac de Javier. `pipeline.py`, `indexar.py`, `rag.py`, `evaluar.py`, `app.py`, `preguntas.csv` (10 preguntas), `corpus.jsonl`, `resultados/chunking.csv` y `comparativa.csv`. El diario está en `PASOS.md`.
+- En el Mac de Javier: `.venv` con Python 3.14 y todo `requirements.txt`. Ollama con `qwen2.5:3b` funcionando.
 
 ## Pendiente
 
 - Fecha de entrega real (sin confirmar).
-- Quién es P1, P2 y P3.
-- Escribir las preguntas de evaluación, antes de buscar fuentes.
-- URLs vigentes de los 3 PDFs.
+- Veredictos de la comparativa, revisados por el grupo.
 - Qué LLM usar en la nube para la app publicada, porque Streamlit Cloud no ejecuta Ollama.
+- Las 5 páginas de la web de Quarto.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.

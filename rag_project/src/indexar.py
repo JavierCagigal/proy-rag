@@ -6,7 +6,13 @@ embeddings en ChromaDB (carpeta chroma/, no se sube a git: se regenera).
 Ejecutar desde rag_project/:  python src/indexar.py
 """
 import json
+import time
 from pathlib import Path
+
+from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 CARPETA = Path(__file__).resolve().parent.parent
 CORPUS = CARPETA / "data" / "processed" / "corpus.jsonl"
@@ -22,26 +28,56 @@ TAMANOS = [300, 800, 1500]
 SOLAPE = 100
 
 
+def crear_embeddings():
+    """El modelo de embeddings, con los prefijos que espera e5. rag.py usa este mismo."""
+    # normalize_embeddings: vectores de longitud 1, así la distancia coseno es directa.
+    return HuggingFaceEmbeddings(
+        model_name=MODELO_EMBEDDINGS,
+        encode_kwargs={"prompt": "passage: ", "normalize_embeddings": True},
+        query_encode_kwargs={"prompt": "query: ", "normalize_embeddings": True},
+    )
+
+
 def cargar_corpus():
     """Devuelve una lista de Document(page_content=texto, metadata={fuente, url, pagina})."""
-    pass
+    documentos = []
+    with CORPUS.open(encoding="utf-8") as f:
+        for linea in f:
+            datos = json.loads(linea)
+            texto = datos.pop("texto")
+            # Chroma no admite metadata con valor None (la página de los medicamentos de CIMA).
+            metadata = {clave: valor for clave, valor in datos.items() if valor is not None}
+            documentos.append(Document(page_content=texto, metadata=metadata))
+    return documentos
 
 
 def trocear(documentos, tamano, solape):
     """Parte los documentos con RecursiveCharacterTextSplitter. Los trozos heredan la metadata."""
-    pass
+    # Corta primero por párrafos, luego por líneas, luego por espacios: intenta no partir frases.
+    divisor = RecursiveCharacterTextSplitter(chunk_size=tamano, chunk_overlap=solape)
+    return divisor.split_documents(documentos)
 
 
-def indexar(trozos, coleccion):
+def indexar(trozos, coleccion, embeddings):
     """Crea (o recrea) la colección en Chroma con persist_directory=CHROMA."""
     # Una colección por tamaño, p. ej. "trozos_800", para poder compararlas en evaluar.py
-    pass
+    base = Chroma(collection_name=coleccion, embedding_function=embeddings,
+                  persist_directory=str(CHROMA))
+    base.delete_collection()  # si no, al volver a ejecutar se duplicarían los trozos
+    return Chroma.from_documents(trozos, embeddings, collection_name=coleccion,
+                                 persist_directory=str(CHROMA),
+                                 collection_metadata={"hnsw:space": "cosine"})
 
 
 def main():
-    # cargar_corpus() una vez → por cada tamaño: trocear → indexar
-    # Imprimir cuántos trozos salen con cada tamaño (va a la web, 02-arquitectura).
-    pass
+    documentos = cargar_corpus()
+    embeddings = crear_embeddings()
+    print(f"{len(documentos)} documentos en el corpus")
+    for tamano in TAMANOS:
+        inicio = time.time()
+        trozos = trocear(documentos, tamano, SOLAPE)
+        indexar(trozos, f"trozos_{tamano}", embeddings)
+        print(f"  trozos_{tamano}: {len(trozos)} trozos ({time.time() - inicio:.0f} s)")
 
 
 if __name__ == "__main__":

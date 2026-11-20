@@ -2,4 +2,121 @@
 title: "1. Datos"
 ---
 
-<!-- P1. Fuentes (los 3 PDFs y la API de CIMA: qué, de dónde, licencia; por qué esos principios activos), cómo funciona pipeline.py con extractos de código explicados, cuántas páginas por fuente y ejemplo de texto antes y después de limpiar. -->
+```{python}
+#| echo: false
+# Muestra el código real de una función de src/, para que la web no se desactualice.
+import inspect
+import sys
+
+import pandas as pd
+from IPython.display import Markdown
+
+sys.path.insert(0, "src")
+import pipeline  # noqa: E402
+
+
+def mostrar_codigo(funcion):
+    return Markdown(f"```python\n{inspect.getsource(funcion)}```")
+
+
+corpus = pd.read_json("data/processed/corpus.jsonl", lines=True)
+```
+
+Un RAG solo sabe lo que hay en sus datos. Esta página explica de dónde salen, cómo se descargan y cómo se limpian. Todo lo hace un único script, `src/pipeline.py`, **sin ningún paso manual**: si mañana sale el reglamento de 2027, se cambia la URL, se vuelve a ejecutar y el asistente queda actualizado sin reentrenar nada.
+
+## Las fuentes
+
+Elegimos fuentes con respuestas **concretas** (cifras), **actuales** (cambian cada año) y **de nicho** (poco presentes en internet), porque es ahí donde un LLM se inventa las cosas y donde un RAG marca la diferencia.
+
+| Fuente | Tipo | Qué aporta |
+|---|---|---|
+| Reglamento de competición de World Triathlon 2026 | PDF, inglés | Penalizaciones, drafting, neopreno, transiciones |
+| Reglamento de Competiciones de la FETRI 2026 | PDF, español | Lo mismo con las normas nacionales |
+| Lista de sustancias prohibidas de la WADA 2026 | PDF, inglés | Qué está prohibido, cuándo y por qué vía |
+| CIMA, de la Agencia Española del Medicamento | API REST | Qué principio activo lleva cada medicamento español y cómo se toma |
+
+Mezclamos **PDF y API**, como pide la fase A. Los PDF son documentos públicos oficiales: se descargan en cada ejecución y no se suben al repositorio.
+
+## Descargar los PDF
+
+```{python}
+#| echo: false
+mostrar_codigo(pipeline.descargar_pdf)
+```
+
+Dos detalles. Si el PDF ya está en `data/raw/`, no se vuelve a bajar. Y la web de la WADA no sirve el archivo si la petición no parece de un navegador, por eso se envía una cabecera `User-Agent`.
+
+Cada página se extrae por separado con `pypdf`, para poder **citar el número de página** en las respuestas.
+
+## Limpiar el texto
+
+El texto de un PDF trae ruido que confunde a la búsqueda. Lo peor eran las páginas del **índice**: una línea como "5.5. IR O NO A RUEDA / DRAFTING ……… 47" se parece mucho a una pregunta sobre drafting, pero no contiene la respuesta.
+
+```{python}
+#| echo: false
+mostrar_codigo(pipeline.es_ruido)
+```
+
+```{python}
+#| echo: false
+mostrar_codigo(pipeline.limpiar)
+```
+
+Las cabeceras y pies se detectan solos: son las líneas que se repiten en más de la mitad de las páginas de un documento.
+
+Así queda una página del índice de la FETRI antes y después de limpiar:
+
+```{python}
+from pypdf import PdfReader
+
+pagina = PdfReader("data/raw/reglamento_fetri.pdf").pages[3].extract_text()
+print("ANTES:\n", pagina[:400])
+print("\nDESPUÉS:\n", pipeline.limpiar(pagina)[:400] or "(vacía: la página se descarta)")
+```
+
+## Los medicamentos de CIMA
+
+La pregunta "¿me da positivo el Ventolin?" no se puede contestar solo con la lista de la WADA, que habla de **salbutamol** y nunca dice "Ventolin". CIMA traduce el nombre comercial al principio activo y dice la **vía de administración**, que cambia la respuesta: el salbutamol inhalado está permitido con límites y en jarabe no.
+
+No bajamos los más de 20.000 medicamentos de España: solo los de **24 principios activos** que importan en el deporte.
+
+```{python}
+print(pipeline.PRINCIPIOS_ACTIVOS)
+```
+
+Están agrupados por motivo: broncodilatadores para el asma, corticoides, estimulantes y descongestionantes de los antigripales, un diurético, un betabloqueante, analgésicos (el tramadol está prohibido en competición y la codeína no), hormonas y tres medicamentos **permitidos** (ibuprofeno, paracetamol, cetirizina) para comprobar que el asistente también sabe decir "no da positivo".
+
+```{python}
+#| echo: false
+mostrar_codigo(pipeline.descargar_cima)
+```
+
+La API devuelve los resultados por páginas, así que el bucle pide la siguiente mientras queden. Después nos quedamos solo con los medicamentos **comercializados y de marca**: los genéricos ya llevan el principio activo en el nombre ("PARACETAMOL CINFA"), y las marcas ("Frenadol", "Adolonta") son justo lo que un LLM no conoce.
+
+Cada medicamento se convierte en una frase corta:
+
+```{python}
+#| echo: false
+mostrar_codigo(pipeline.texto_medicamento)
+```
+
+```{python}
+for texto in corpus[corpus.texto.str.startswith("VENTOLIN")].texto:
+    print(texto)
+```
+
+## El corpus
+
+El resultado es `data/processed/corpus.jsonl`: una línea por página de PDF y una por medicamento, con su fuente, URL y página. Los medicamentos guardan además su `principio_activo`, que usa la búsqueda en dos pasos (página 2).
+
+```{python}
+resumen = corpus.groupby("fuente").agg(lineas=("texto", "size"),
+                                       caracteres_medios=("texto", lambda t: int(t.str.len().mean())))
+resumen
+```
+
+```{python}
+corpus[corpus.fuente == "cima"].principio_activo.value_counts().head(10)
+```
+
+En total, **`{python} len(corpus)` líneas**, que se generan en unos 20 segundos con `python src/pipeline.py`.
