@@ -20,10 +20,12 @@ UMBRAL_CIMA = 0.85
 SOLO_CIMA = {"fuente": "cima"}
 SOLO_WADA = {"fuente": "lista_prohibida_wada"}
 
-PROMPT_RAG = """Responde en español a la pregunta usando SOLO la información del contexto.
-El contexto puede estar en inglés. Los trozos [cima] dicen qué principio activo lleva cada medicamento español.
-Si la respuesta no está en el contexto, di que no la sabes.
-Después de cada dato, cita la fuente entre corchetes, por ejemplo [reglamento_world_triathlon, p. 12].
+PROMPT_RAG = """Eres un asistente para triatletas. Responde en español usando SOLO el contexto de abajo (puede estar en inglés).
+- Los trozos [cima] dicen qué principio activo lleva un medicamento español y por qué vía se toma.
+- Los trozos [lista_prohibida_wada] dicen qué sustancias están prohibidas, si solo en competición y con qué límites.
+- Si preguntan por un medicamento: di su principio activo, busca esa sustancia en la lista de la WADA y explica si está prohibida, cuándo, y si depende de la vía o de la dosis.
+- Da las cifras exactas del contexto y cita la fuente entre corchetes después de cada dato, por ejemplo [reglamento_fetri, p. 28].
+- Solo si el contexto no tiene la respuesta, di: "No lo sé con mis fuentes".
 
 Contexto:
 {contexto}
@@ -44,25 +46,34 @@ def recuperar(base, pregunta, k=K):
     En dos pasos, para las preguntas de medicamentos (GUIA_PROYECTO.md, apartado 3):
     la WADA habla de "salbutamol", no de "Ventolin".
     """
-    trozos = base.similarity_search(pregunta, k=k)
+    generales = base.similarity_search(pregunta, k=k)
 
     # Paso 1b: ¿la pregunta nombra un medicamento? Se busca solo en CIMA y se añaden los muy parecidos.
     # Hace falta porque los trozos de los reglamentos (largos y en español) suelen ganar en la búsqueda general.
-    for trozo, puntuacion in base.similarity_search_with_relevance_scores(pregunta, k=2, filter=SOLO_CIMA):
-        if puntuacion >= UMBRAL_CIMA:
-            trozos.append(trozo)
+    cima = [t for t in generales if t.metadata["fuente"] == "cima"]
+    cima += [t for t, puntuacion in base.similarity_search_with_relevance_scores(pregunta, k=2, filter=SOLO_CIMA)
+             if puntuacion >= UMBRAL_CIMA]
+    if not cima:
+        return sin_repetidos(generales)
 
-    # Paso 2: por cada principio activo que haya salido de CIMA, buscar qué dice la WADA.
-    principios = {t.metadata["principio_activo"] for t in trozos if t.metadata["fuente"] == "cima"}
-    for principio in principios:
-        trozos += base.similarity_search(principio, k=k, filter=SOLO_WADA)
+    # Es una pregunta de medicamentos: la respuesta está en CIMA + WADA. Los trozos del reglamento
+    # solo meten ruido, y de CIMA bastan 2 (las demás presentaciones del mismo medicamento se repiten).
+    cima = sin_repetidos(cima)[:2]
+    wada = [t for t in generales if t.metadata["fuente"] == "lista_prohibida_wada"]
+
+    # Paso 2 (expansión de la consulta): por cada principio activo, buscar qué dice la WADA.
+    for principio in {t.metadata["principio_activo"] for t in cima}:
+        wada += base.similarity_search(principio, k=k, filter=SOLO_WADA)
         # Además, por palabra exacta: "Tramadol" está dentro de una lista larga de narcóticos
         # y el embedding de esa lista no se parece al de una sola palabra.
         for nombre in principio.split(" + "):
-            trozos += base.similarity_search(nombre, k=2, filter=SOLO_WADA,
-                                             where_document={"$contains": nombre.capitalize()})
+            wada += base.similarity_search(nombre, k=2, filter=SOLO_WADA,
+                                           where_document={"$contains": nombre.capitalize()})
+    return sin_repetidos(cima + wada)
 
-    # Sin repetidos, conservando el orden (el mismo trozo puede salir en las dos búsquedas).
+
+def sin_repetidos(trozos):
+    """Quita los trozos repetidos conservando el orden (el mismo trozo puede salir en varias búsquedas)."""
     vistos, unicos = set(), []
     for t in trozos:
         if t.page_content not in vistos:

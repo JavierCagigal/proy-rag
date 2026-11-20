@@ -91,6 +91,13 @@ def es_ruido(linea, repetidas):
             or re.fullmatch(r"\d+(\s*/\s*\d+)?", linea) is not None)
 
 
+def es_indice(texto):
+    """Página de índice alfabético ("Formoterol, 9, 12"): nombra todas las sustancias pero no dice nada de ellas."""
+    lineas = [l.strip() for l in texto.splitlines() if l.strip()]
+    entradas = [l for l in lineas if re.fullmatch(r".+,\s*\d+(\s*,\s*\d+)*", l)]
+    return len(entradas) > len(lineas) / 2
+
+
 def limpiar(texto, repetidas=frozenset()):
     """Quita el ruido, une palabras partidas con guion y normaliza espacios."""
     lineas = [l for l in texto.splitlines() if not es_ruido(l, repetidas)]
@@ -145,7 +152,7 @@ def lineas_pdfs():
         guardadas = 0
         for numero, texto in paginas:
             texto = limpiar(texto, repetidas)
-            if len(texto) < 50:  # portadas, páginas en blanco o solo con un título
+            if len(texto) < 50 or es_indice(texto):  # portadas, páginas en blanco, índices
                 continue
             guardadas += 1
             yield {"fuente": pdf["nombre"], "url": pdf["url"], "pagina": numero, "texto": texto}
