@@ -49,6 +49,7 @@ Buscadas en las webs oficiales con Chrome. Son las versiones vigentes hoy:
 | `extraer_paginas` | Texto de cada página con `pypdf` | Guardamos el número de página para poder **citarlo** |
 | `lineas_repetidas` | Líneas que salen en más de la mitad de las páginas | Son cabeceras y pies ("World Triathlon Competition Rules 2026"…); repetidas en cada trozo solo meten ruido |
 | `es_ruido` + `limpiar` | Quita esas líneas, las del **índice** ("5.5. DRAFTING ……… 47") y los números de página sueltos ("35/212"); une palabras partidas con guion y normaliza espacios | Las líneas del índice se parecen mucho a las preguntas pero no contienen la respuesta: robaban sitio en la búsqueda |
+| `es_indice` | Descarta las páginas de **índice alfabético** (más de la mitad de las líneas son "Formoterol, 9, 12") | Las 5 últimas páginas de la WADA nombran todas las sustancias, así que ganaban todas las búsquedas sin decir nada útil. El LLM llegaba a citarlas |
 | `descargar_cima` | Medicamentos de un principio activo, **recorriendo todas las páginas** de la API | La API va por páginas (`totalFilas`, `pagina`, `tamanioPagina`); el paracetamol, por ejemplo, tiene 421 |
 | `texto_medicamento` | Frase corta: nombre, principio activo, forma, vía, receta | Es lo que se indexa. La **vía** importa: el salbutamol inhalado está permitido y en jarabe no |
 | `url_medicamento` | Enlace a la ficha técnica | Para citar y comprobar |
@@ -61,7 +62,7 @@ Buscadas en las webs oficiales con Chrome. Son las versiones vigentes hoy:
 - **`principio_activo` sale del campo `vtm`** de CIMA, que trae la combinación completa ("paracetamol + clorfenamina + dextrometorfano + pseudoefedrina"). Un medicamento con dos principios activos sale en dos búsquedas: se guarda una sola vez.
 - **Avisos de pypdf silenciados**: el PDF de World Triathlon tiene referencias internas rotas; se lee bien, pero pypdf avisaba decenas de veces.
 
-**Resultado**: 1.000 líneas (204 páginas de World Triathlon, 134 de la FETRI, 25 de la WADA y 637 medicamentos), 1,1 MB, en unos 20 segundos.
+**Resultado**: 995 líneas (204 páginas de World Triathlon, 134 de la FETRI, 20 de la WADA y 637 medicamentos), 1,1 MB, en unos 20 segundos.
 
 ---
 
@@ -117,9 +118,10 @@ La pregunta 1 decía "según el reglamento de World Triathlon"; se quitó para n
 
 ### Cómo busca `recuperar()`
 
-1. **Búsqueda general**: los 4 trozos más parecidos a la pregunta.
+1. **Búsqueda general**: los 4 trozos más parecidos a la pregunta. Si no es una pregunta de medicamentos, se devuelven estos y ya está.
 2. **¿Nombra un medicamento?** Búsqueda solo en CIMA; se añaden los trozos con relevancia **≥ 0,85**. Umbral medido: las preguntas de medicamentos dan ≥ 0,857 y las demás ≤ 0,836. Hace falta porque en la búsqueda general ganaban los trozos largos de la FETRI (en español, como la pregunta) y "Sumial" no salía.
-3. **Expansión de la consulta**: por cada principio activo de esos trozos de CIMA, se busca en la WADA:
+3. Si es de medicamentos, el contexto es **CIMA (2 trozos) + WADA**: los trozos del reglamento solo metían ruido, y las demás presentaciones del mismo medicamento se repetían ("VENTOLIN 100 microgramos", "VENTOLIN 5 mg/ml"…).
+4. **Expansión de la consulta**: por cada principio activo de esos trozos de CIMA, se busca en la WADA:
    - por significado, con el nombre del principio activo (4 trozos);
    - por **palabra exacta** con `$contains` de Chroma (2 trozos). "Tramadol" está dentro de una lista larga de narcóticos y el embedding de esa lista no se parece al de una sola palabra.
 
@@ -127,7 +129,8 @@ La pregunta 1 decía "según el reglamento de World Triathlon"; se quitó para n
 
 - **Primera prueba (Hito 1)**: la del neopreno salió bien con cita; la de Ventolin, mal ("No sabes"). El segundo paso traía la página correcta de la WADA, pero no el trozo con el límite.
 - Se probó buscar con "pregunta + principio activo": **empeoraba** (la pregunta en español atraía a la FETRI). Se dejó solo el principio activo, filtrando a la WADA.
-- **Prompt**: se añadió "Responde en español", "el contexto puede estar en inglés" y qué son los trozos `[cima]`. El modelo es pequeño y se perdía con el inglés.
+- **Prompt**: ahora explica qué son los trozos `[cima]` y `[lista_prohibida_wada]`, dice los pasos para una pregunta de medicamentos (principio activo → WADA → prohibido, cuándo, vía, dosis), pide cifras exactas con cita y cambia "di que no la sabes" por "solo si el contexto no tiene la respuesta, di *No lo sé con mis fuentes*". Con el prompt anterior qwen contestaba "No la sabes" incluso con el trozo correcto delante (Adolonta, Sumial).
+- **Menos trozos**: al quitar los índices de la WADA, el reglamento en las preguntas de medicamentos y las presentaciones repetidas, el contexto medio bajó de 4.113 a 3.117 caracteres con los mismos aciertos.
 - **`num_ctx=8192`**: por defecto Ollama solo lee los primeros miles de tokens y **corta el contexto sin avisar**. Con varios trozos de 800 caracteres se pasaba.
 - **`temperature=0`**: respuestas repetibles para la comparativa.
 
@@ -143,11 +146,11 @@ Para cada tamaño y pregunta, mide dos cosas sobre los trozos recuperados (sin L
 
 | Tamaño | Página correcta | Dato exacto | Texto que recibe el LLM (media) |
 |---|---|---|---|
-| 300 | 9 / 9 | 4 / 9 | 1.881 caracteres |
-| **800** | 9 / 9 | **8 / 9** | 4.113 caracteres |
-| 1500 | 9 / 9 | 8 / 9 | 6.861 caracteres |
+| 300 | 9 / 9 | 4 / 9 | 1.411 caracteres |
+| **800** | 9 / 9 | **8 / 9** | 3.117 caracteres |
+| 1500 | 9 / 9 | 8 / 9 | 5.527 caracteres |
 
-**Elegido: 800.** Con 300 se encuentra la página, pero el trozo corta las tablas (penalizaciones, neopreno) y la cifra se queda fuera. 1.500 acierta lo mismo que 800 con un 67 % más de texto, y eso es más ruido para un modelo pequeño y más lento.
+**Elegido: 800.** Con 300 se encuentra la página, pero el trozo corta las tablas (penalizaciones, neopreno) y la cifra se queda fuera. 1.500 acierta lo mismo que 800 con un 77 % más de texto, y eso es más ruido para un modelo pequeño y más lento.
 
 Antes de llegar aquí el experimento destapó dos problemas, ya resueltos (apartado 5): la pregunta en español atraía a la FETRI y la búsqueda de medicamentos no llegaba a la WADA.
 
@@ -157,13 +160,43 @@ Antes de llegar aquí el experimento destapó dos problemas, ya resueltos (apart
 
 `python src/evaluar.py` → `resultados/comparativa.csv`: la misma pregunta al mismo modelo, sin contexto y con los trozos. Los veredictos (`correcta`, `parcial`, `inventada`, `no sabe`) se ponen a mano.
 
-<!-- RESULTADOS_COMPARATIVA -->
+Veredictos **propuestos por Claude** (columna `nota` con el porqué de cada uno). Hay que revisarlos entre todos antes de darlos por buenos:
+
+| | Sin RAG | Con RAG |
+|---|---|---|
+| Correcta | 0 | 2 |
+| Parcial | 0 | 4 |
+| Inventada | 9 | 2 |
+| No sabe | 1 | 2 |
+
+Lo que se ve:
+- **Sin RAG, qwen se lo inventa casi todo y con mucha seguridad**: neopreno prohibido "a 28 ºC", Adolonta "es adenosina", Frenadol "lleva desmopánico", ganadores de Ironman que no existen.
+- **Con RAG ya no inventa datos externos**: todo lo que dice sale de los trozos, y en la pregunta de control dice que no lo sabe.
+- **Pero el modelo de 3B lee mal el contexto**. La recuperación trae el dato exacto en 8 de 9 preguntas, y aun así confunde cifras del mismo trozo: en la 5 da el límite del formoterol en vez del salbutamol, y en la 1 la sanción de "otras infracciones" en vez de la de drafting. Con 3 GB libres en el disco no cabe un modelo local mayor (qwen2.5:7b ocupa unos 4,7 GB). La mejora natural es usar un modelo mayor por API, que hace falta igualmente para la app en la nube.
+
+El primer intento (prompt corto, todos los trozos) dio aún menos: 2 correctas, 3 parciales, 2 inventadas y 3 "no sabe".
+
+---
+
+## 7. `app.py`: fase D, la interfaz (20/11)
+
+- `@st.cache_resource` abre Chroma y carga el modelo de embeddings **una sola vez**, no en cada pregunta.
+- Caja de texto, 4 preguntas de ejemplo en la barra lateral y una casilla "Comparar con el LLM sin RAG" que pone las dos respuestas en dos columnas.
+- Debajo, un desplegable con las **fuentes**: cada trozo con su cita y el enlace al documento o a la ficha de CIMA.
+- `sys.path.insert(0, "src")`: `rag.py` importa `indexar.py` como módulo hermano, así que la carpeta `src/` tiene que estar en el path. Por eso el editor marca el `import` en rojo, aunque funciona.
+- Probada con `streamlit.testing.v1.AppTest`: arranca sin errores. Todavía usa Ollama, así que solo funciona en local.
+
+## 8. Web de Quarto (20/11)
+
+- `01-datos.qmd` escrita: fuentes, descarga, limpieza (con un antes/después real), CIMA y resumen del corpus. El código de cada función se enseña con `inspect.getsource`, como en el Trabajo 1, así que la web siempre muestra el código real.
+- Se renderiza con `QUARTO_PYTHON=.venv/bin/python quarto render`. Necesita los PDF en `data/raw/` (ejecutar antes `pipeline.py`); el resultado se congela en `_freeze/`.
 
 ---
 
 ## Pendiente
 
-- Veredictos de la comparativa (revisarlos entre todos).
-- `app.py` (fase D) y el LLM para la nube.
-- Web de Quarto: las 5 páginas.
+- **Elegir el LLM de la nube** (y si se usa también para la comparativa): hace falta para la app publicada y es la mejora más clara del resultado.
+- Revisar los veredictos de la comparativa entre todos.
+- Páginas 02, 03, 04, 05 y portada de la web.
+- Desplegar la app en Streamlit Cloud.
 - Fase E (opcional): búsqueda híbrida BM25. Ya usamos `$contains` como búsqueda exacta mínima.

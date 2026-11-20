@@ -49,8 +49,9 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | Fuentes: World Triathlon Competition Rules 2026, FETRI Reglamento de Competiciones 2026 (Circular 4/26), WADA 2026 Prohibited List (inglés). Las URL están en `pipeline.py` | Las vigentes en las webs oficiales el 20/11. La WADA exige `User-Agent` de navegador |
 | 20/11 | CIMA: **24 principios activos**, solo medicamentos comercializados y de marca (637) | Los genéricos ya llevan el principio activo en el nombre; las marcas son lo que el LLM no sabe |
 | 20/11 | `preguntas.csv` lleva además la columna `dato_clave` (regex del dato exacto); en `fuente`, `+` = hacen falta las dos y `\|` = vale cualquiera | Mide si el trozo contiene la cifra y no solo la página; la FETRI copia el reglamento de World Triathlon |
-| 20/11 | **Tamaño de trozo: 800** (dato exacto en 8/9 preguntas; 300 → 4/9; 1500 → 8/9 con un 67 % más de texto) | Medido con `evaluar.py chunking` |
-| 20/11 | `recuperar()`: búsqueda general + búsqueda solo en CIMA con umbral 0,85 + segundo paso en la WADA por significado y por palabra exacta (`$contains`) | Cada paso arregla un fallo medido; detalle en PASOS.md, apartado 5 |
+| 20/11 | **Tamaño de trozo: 800** (dato exacto en 8/9 preguntas; 300 → 4/9; 1500 → 8/9 con un 77 % más de texto) | Medido con `evaluar.py chunking` |
+| 20/11 | `recuperar()`: búsqueda general + búsqueda solo en CIMA con umbral 0,85; si es de medicamentos, contexto = CIMA (2) + WADA por significado y por palabra exacta (`$contains`). `pipeline.py` descarta las páginas de índice alfabético | Cada paso arregla un fallo medido; detalle en PASOS.md, apartados 2 y 5 |
+| 20/11 | Resultado con qwen2.5:3b: sin RAG 0 correctas y 9 inventadas; con RAG 2 correctas, 4 parciales, 2 inventadas y 2 "no sabe" (veredictos propuestos, por revisar) | La recuperación acierta 8/9; el cuello de botella es leer el contexto con un modelo de 3B. Con 3 GB libres no cabe uno local mayor |
 | 20/11 | Ollama con `num_ctx=8192` y `temperature=0` | Sin `num_ctx` Ollama corta el contexto sin avisar; temperatura 0 para que la comparativa se pueda repetir |
 
 ## Lo que une cada parte (no se cambia sin avisar al resto)
