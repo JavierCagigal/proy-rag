@@ -6,7 +6,8 @@ import streamlit as st
 
 # from src.rag import cargar_base, responder_con_rag, responder_sin_rag
 
-st.title("Asistente de triatlón")  # cambiadlo cuando cerremos el tema
+st.title("Asistente de competición para triatletas")
+st.caption("Reglamento, antidopaje y medicamentos: ¿me da positivo?")
 
 # 1. base = cargar_base() con @st.cache_resource, para no abrir Chroma en cada pregunta.
 # 2. pregunta = st.text_input(...) y una casilla "Comparar con el LLM sin RAG".

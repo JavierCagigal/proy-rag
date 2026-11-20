@@ -30,7 +30,15 @@ def cargar_base(coleccion=COLECCION):
 
 
 def recuperar(base, pregunta, k=K):
-    """Devuelve los k trozos más parecidos a la pregunta (Document con su metadata)."""
+    """Devuelve los trozos más parecidos a la pregunta (Document con su metadata).
+
+    En dos pasos, para las preguntas de medicamentos (GUIA_PROYECTO.md, apartado 3):
+    la WADA habla de "salbutamol", no de "Ventolin".
+    """
+    # 1. trozos = base.similarity_search(pregunta, k=k)
+    # 2. Si algún trozo es de CIMA, sacar su metadata["principio_activo"]
+    #    y volver a buscar con ese nombre (filtrando a las fuentes que no son CIMA).
+    # 3. Devolver los trozos de las dos búsquedas, sin repetidos.
     pass
 
 
@@ -53,9 +61,13 @@ def responder_con_rag(base, pregunta):
 
 if __name__ == "__main__":
     base = cargar_base()
-    pregunta = "¿A partir de qué temperatura del agua se prohíbe el neopreno?"
-    print("SIN RAG:", responder_sin_rag(pregunta))
-    respuesta, trozos = responder_con_rag(base, pregunta)
-    print("CON RAG:", respuesta)
-    for t in trozos:
-        print("  -", t.metadata)
+    for pregunta in [
+        "¿A partir de qué temperatura del agua se prohíbe el neopreno?",
+        "Tengo asma y uso Ventolin inhalado, ¿puedo usarlo el día de la carrera?",
+    ]:
+        print("\nPREGUNTA:", pregunta)
+        print("SIN RAG:", responder_sin_rag(pregunta))
+        respuesta, trozos = responder_con_rag(base, pregunta)
+        print("CON RAG:", respuesta)
+        for t in trozos:
+            print("  -", t.metadata)

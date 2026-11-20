@@ -8,5 +8,5 @@ title: "Deporte con IA"
 
 ## Trabajo 2: sistema RAG
 
-<!-- Motivación (P3 con todos): qué pregunta un triatleta que un chatbot genérico contesta mal,
+<!-- Motivación (P3 con todos): asistente de competición para triatletas (reglamento, antidopaje y medicamentos de CIMA). Qué pregunta un triatleta que un chatbot genérico contesta mal,
 por qué un RAG lo arregla y enlaces a la app desplegada y al repositorio. -->

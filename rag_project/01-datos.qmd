@@ -2,4 +2,4 @@
 title: "1. Datos"
 ---
 
-<!-- P1. Fuentes (qué, de dónde, licencia), cómo funciona pipeline.py con extractos de código explicados, cuántas páginas por fuente y ejemplo de texto antes y después de limpiar. -->
+<!-- P1. Fuentes (los 3 PDFs y la API de CIMA: qué, de dónde, licencia; por qué esos principios activos), cómo funciona pipeline.py con extractos de código explicados, cuántas páginas por fuente y ejemplo de texto antes y después de limpiar. -->
