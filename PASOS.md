@@ -184,9 +184,59 @@ El primer intento (prompt corto, todos los trozos) dio aún menos: 2 correctas, 
 - Caja de texto, 4 preguntas de ejemplo en la barra lateral y una casilla "Comparar con el LLM sin RAG" que pone las dos respuestas en dos columnas.
 - Debajo, un desplegable con las **fuentes**: cada trozo con su cita y el enlace al documento o a la ficha de CIMA.
 - `sys.path.insert(0, "src")`: `rag.py` importa `indexar.py` como módulo hermano, así que la carpeta `src/` tiene que estar en el path. Por eso el editor marca el `import` en rojo, aunque funciona.
-- Probada con `streamlit.testing.v1.AppTest`: arranca sin errores. Todavía usa Ollama, así que solo funciona en local.
+- Probada con `streamlit.testing.v1.AppTest`: arranca sin errores. En local usa el Ollama del Mac; en la nube, el que va dentro del contenedor (apartado 8).
 
-## 8. Web de Quarto (20/11)
+## 8. Despliegue en Google Cloud Run (21/11)
+
+**Decisión**: la app pública usa **Ollama con qwen2.5:3b dentro del propio contenedor**, en Google Cloud Run. Es el mismo modelo que en la evaluación, así que lo que se ve en la app es lo que hemos medido, y no hace falta ninguna API key. Lo usan otros compañeros de clase.
+
+| Archivo | Qué hace |
+|---|---|
+| `rag_project/Dockerfile` | Construye la imagen: Python 3.12 + el binario de Ollama 0.40.16 (copiado de su imagen oficial) + las librerías con las mismas versiones que el `.venv` + `qwen2.5:3b` descargado + la colección `trozos_800` ya indexada |
+| `rag_project/arrancar.sh` | Al arrancar: lanza Ollama, espera a que responda, carga qwen en memoria y arranca Streamlit en el puerto que da Cloud Run (`$PORT`) |
+| `rag_project/.gcloudignore` | Lo que no se sube a Cloud Build (PDF, `chroma/`, resultados, páginas de la web) |
+
+Por qué así:
+- **Todo se prepara al construir la imagen**, no al arrancar: el modelo (1,9 GB), el modelo de embeddings y la base de Chroma ya van dentro. Si se hiciera al arrancar, cada arranque en frío tardaría minutos.
+- **`torch` para CPU**: la versión normal trae CUDA (varios GB) y Cloud Run, sin GPU, no lo usa.
+- **Solo `trozos_800`**: es la colección que gana el experimento y la única que usa la app.
+- **`corpus.jsonl` ya está en el repo**, así que el contenedor no descarga los PDF ni llama a CIMA: se indexa directamente.
+- **Limitación**: en CPU qwen tarda unos 10-30 segundos por respuesta, y si nadie usa la app, Cloud Run la apaga; la primera visita después tarda más (arranque en frío).
+
+### Lo que tiene que hacer Javier (una vez)
+
+La cuenta, la facturación y el inicio de sesión no los puede hacer la IA:
+
+1. Crear un proyecto en https://console.cloud.google.com y **activar la facturación** (Cloud Run la exige aunque se quede dentro del nivel gratuito). Recomendado: una **alerta de presupuesto** de pocos euros en *Facturación → Presupuestos*.
+2. Instalar la CLI: `brew install --cask google-cloud-sdk`.
+3. Iniciar sesión y elegir el proyecto:
+   ```bash
+   gcloud auth login
+   gcloud config set project ID_DEL_PROYECTO
+   gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+   ```
+
+### Desplegar (cada vez que cambie la app)
+
+Desde la raíz del repo:
+
+```bash
+gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \
+  --cpu 4 --memory 8Gi --max-instances 1 --timeout 3600 --session-affinity \
+  --allow-unauthenticated
+```
+
+- `--source rag_project`: Cloud Build construye la imagen con el `Dockerfile`; no hace falta Docker en el Mac.
+- `--cpu 4 --memory 8Gi`: qwen necesita unos 2-3 GB y los embeddings otro más; con menos CPU las respuestas tardan más.
+- `--max-instances 1`: como mucho una copia funcionando, para que el coste no se dispare.
+- `--timeout 3600 --session-affinity`: Streamlit mantiene una conexión abierta (websocket) con cada visitante.
+- `--allow-unauthenticated`: la app es pública, como pide la fase D.
+
+Al terminar, el comando imprime la URL (`https://asistente-triatlon-….run.app`). Si la construcción falla por tiempo, subir el límite con `gcloud config set builds/timeout 1800` y repetir.
+
+**Coste aproximado (sin comprobar, mirar la página de precios)**: Cloud Run cobra por CPU y memoria mientras atiende visitas y tiene un nivel gratuito mensual; con 4 CPU y 8 GB da para unas horas de uso al mes. La imagen (~6 GB) se guarda en Artifact Registry, que cobra poco por GB y mes.
+
+## 9. Web de Quarto (20/11)
 
 - `01-datos.qmd` escrita: fuentes, descarga, limpieza (con un antes/después real), CIMA y resumen del corpus. El código de cada función se enseña con `inspect.getsource`, como en el Trabajo 1, así que la web siempre muestra el código real.
 - Se renderiza con `QUARTO_PYTHON=.venv/bin/python quarto render`. Necesita los PDF en `data/raw/` (ejecutar antes `pipeline.py`); el resultado se congela en `_freeze/`.
@@ -195,8 +245,7 @@ El primer intento (prompt corto, todos los trozos) dio aún menos: 2 correctas, 
 
 ## Pendiente
 
-- **Elegir el LLM de la nube** (y si se usa también para la comparativa): hace falta para la app publicada y es la mejora más clara del resultado.
+- **Desplegar en Cloud Run** (apartado 8): Javier crea el proyecto con facturación, instala `gcloud` e inicia sesión; después se lanza el comando.
 - Revisar los veredictos de la comparativa entre todos.
 - Páginas 02, 03, 04, 05 y portada de la web.
-- Desplegar la app en Streamlit Cloud.
 - Fase E (opcional): búsqueda híbrida BM25. Ya usamos `$contains` como búsqueda exacta mínima.

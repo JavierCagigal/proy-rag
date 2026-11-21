@@ -42,7 +42,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | CIMA: se descarga una lista de **20-30 principios activos relevantes**, no todo el catálogo. Un texto corto por medicamento | Suficiente para las preguntas y rápido de indexar |
 | 20/11 | Fase E (si da tiempo): **BM25 + vectorial** | Los nombres de medicamentos y sustancias son palabras exactas, y ahí BM25 acierta más |
 | 20/11 | Plan B: si no da tiempo, se entrega solo la idea 1 y la 2 se presenta como mejora futura | CIMA es la parte más difícil |
-| 20/11 | Interfaz en **Streamlit** | Un solo archivo, y Streamlit Cloud despliega desde el repo |
+| 20/11 | Interfaz en **Streamlit** | Un solo archivo (se despliega en Cloud Run, ver 21/11) |
 | 20/11 | **Reparto**: P1 Miguel, P2 Javier, P3 Alejandro. P1 lleva también las preguntas de evaluación y las conclusiones | La parte de datos es la más corta y P1 es quien más lee los PDFs; así abre y cierra el proyecto |
 | 20/11 | La web pasa a **5 páginas**: la 04 se separa en `04-app.qmd` (P3) y `05-conclusiones.qmd` (P1) | Cada página tiene un solo responsable y no se pisan en git |
 | 20/11 | **Javier escribe todo el código con la IA**; Miguel y Alejandro exponen su parte. Se lleva un diario en `PASOS.md` | Decisión del grupo. El diario es para que cada uno pueda defender lo que expone |
@@ -53,6 +53,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | `recuperar()`: búsqueda general + búsqueda solo en CIMA con umbral 0,85; si es de medicamentos, contexto = CIMA (2) + WADA por significado y por palabra exacta (`$contains`). `pipeline.py` descarta las páginas de índice alfabético | Cada paso arregla un fallo medido; detalle en PASOS.md, apartados 2 y 5 |
 | 20/11 | Resultado con qwen2.5:3b: sin RAG 0 correctas y 9 inventadas; con RAG 2 correctas, 4 parciales, 2 inventadas y 2 "no sabe" (veredictos propuestos, por revisar) | La recuperación acierta 8/9; el cuello de botella es leer el contexto con un modelo de 3B. Con 3 GB libres no cabe uno local mayor |
 | 20/11 | Ollama con `num_ctx=8192` y `temperature=0` | Sin `num_ctx` Ollama corta el contexto sin avisar; temperatura 0 para que la comparativa se pueda repetir |
+| 21/11 | **Despliegue en Google Cloud Run** con Ollama + `qwen2.5:3b` dentro del contenedor (`rag_project/Dockerfile`, `arrancar.sh`), sin API key | El mismo modelo que en la evaluación; lo usan otros compañeros. Pasos y comando en PASOS.md, apartado 8 |
 
 ## Lo que une cada parte (no se cambia sin avisar al resto)
 
@@ -88,7 +89,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 
 - Fecha de entrega real (sin confirmar).
 - Veredictos de la comparativa, revisados por el grupo.
-- Qué LLM usar en la nube para la app publicada, porque Streamlit Cloud no ejecuta Ollama.
+- Desplegar en Cloud Run: Javier crea el proyecto de Google Cloud con facturación e instala `gcloud` (PASOS.md, apartado 8).
 - Las 5 páginas de la web de Quarto.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.
