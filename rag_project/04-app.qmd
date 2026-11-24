@@ -1,0 +1,5 @@
+---
+title: "4. App"
+---
+
+<!-- P3 (Alejandro). Captura y enlace a la app, cómo se despliega, qué LLM usa y por qué, y los extras (fase E) si los hay. -->
