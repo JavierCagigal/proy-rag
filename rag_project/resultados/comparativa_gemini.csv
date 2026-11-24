@@ -1,0 +1,221 @@
+id,pregunta,respuesta_esperada,respuesta_sin_rag,respuesta_con_rag,fuentes_recuperadas,veredicto_sin_rag,veredicto_con_rag,nota
+1,¿Cuánto tiempo de penalización hay por drafting en una prueba de distancia estándar? ¿Y en una sprint?,1 minuto en distancia estándar y 30 segundos en sprint o más corta (2 minutos en media distancia y 3 en larga).,"En las competiciones de triatlón oficiales reguladas por World Triathlon (y federaciones nacionales como la FETRI en España), el tiempo de penalización por *drafting* (ir a rueda) **depende exclusivamente de si la prueba es ""con drafting"" (drafting legal) o ""sin drafting"" (no-drafting).** 
+
+La distancia (estándar o sprint) por sí misma no determina la sanción, sino el formato de la carrera. Sin embargo, en la práctica habitual:
+*   Las pruebas **Sprint** suelen ser **con drafting** (permitido ir en grupo en la bicicleta).
+*   Las pruebas de **Distancia Estándar** (Olímpica) suelen ser **sin drafting** (prohibido ir a rueda), aunque en algunos campeonatos específicos para grupos de edad o élites puede variar.
+
+Aquí tienes las sanciones según el formato:
+
+### 1. En pruebas SIN DRAFTING (No-Drafting)
+*(Lo habitual en pruebas de Distancia Estándar y muchas Sprint de grupos de edad)*
+
+Si te pican por ir a rueda o violar la distancia de seguridad (normalmente 10-12 metros respecto al ciclista de delante):
+*   **Primera sanción (Tarjeta Azul):** El árbitro te mostrará una bandera azul. Debes detenerte en la siguiente **Penalty Box** (zona de penalización) situada en el circuito de ciclismo.
+    *   El tiempo de penalización en la Penalty Box para distancia Estándar y Sprint suele ser de **2 minutos** (en pruebas de media y larga distancia suele ser de 5 minutos).
+*   **Segunda sanción:** Descalificación (DSQ).
+
+### 2. En pruebas CON DRAFTING (Drafting Legal)
+*(Lo habitual en la categoría Élite y en muchas pruebas Sprint)*
+
+En estas pruebas **está permitido ir en grupo** en la bicicleta. Por lo tanto, no hay penalización por *drafting*. 
+
+Las únicas penalizaciones relacionadas con el sector ciclista ocurren en la zona de transición (T1/T2) o por maniobras peligrosas, y suelen resolverse con una **tarjeta amarilla** (parar y seguir, o penalización de tiempo en la T1/T2, normalmente 10 o 15 segundos) o descalificación directa según la gravedad.
+
+---
+
+**Resumen:** 
+Si tu pregunta va orientada al triatlón clásico donde **no está permitido** ir a rueda (lo más común en distancia Estándar), la penalización en el *box* de sanciones es de **2 minutos**.",No lo sé con mis fuentes.,"[reglamento_fetri, p. 28] [reglamento_fetri, p. 28] [reglamento_fetri, p. 131] [reglamento_fetri, p. 51]",inventada,no sabe,Sin RAG dice que la sanción no depende de la distancia (falso) y no da cifras. Con RAG contesta 'no lo sé' aunque la p. 28 de la FETRI estaba entre los trozos (en otra ejecución sí la acertó).
+2,"Soy de grupos de edad, tengo 35 años y la natación es de 1500 m. ¿A partir de qué temperatura del agua está prohibido el neopreno?","Prohibido con el agua a 22 ºC o más; obligatorio a 15,9 ºC o menos.","Según la normativa oficial de Triatlón (tanto de la **World Triathlon** como de la **Federación Española de Triatlón - FETRI**), para la distancia de **1500 m** (que corresponde al segmento de natación de un triatlón distancia Olímpica), el uso del neopreno está **prohibido a partir de los 24,6 ºC**.
+
+Aquí te dejo la escala exacta para la categoría de grupos de edad en pruebas sin drafting (o con él, ya que la regla de temperatura es la misma para el agua):
+
+*   **Menores de 15,9 ºC:** Obligatorio.
+*   **Entre 16,0 ºC y 24,5 ºC:** Permitido.
+*   **24,6 ºC o más:** **Prohibido.**
+
+Por lo tanto, si el agua alcanza los **24,6 ºC** (inclusive) o más, tendrás que nadar únicamente con el triaje o bañador, sin neopreno.","Para competiciones de Grupos de Edad hasta 45-49 o Veteranos 1 y una distancia de hasta 1500 m, el uso de traje de neopreno está prohibido por encima de 22 ºC [reglamento_fetri, p. 34].","[reglamento_fetri, p. 34] [reglamento_fetri, p. 86] [reglamento_fetri, p. 34] [reglamento_fetri, p. 41]",inventada,correcta,"Sin RAG da 24,6 ºC (es el límite de más de 1500 m). Con RAG: 22 ºC hasta 1500 m en grupos de edad, citando la FETRI p. 34."
+3,¿Me puedo desabrochar el casco en la transición antes de dejar la bici en el soporte?,No. El casco tiene que ir abrochado desde que se saca la bici del soporte hasta que se vuelve a colocar en él y se suelta.,"**No, no te puedes desabrochar el casco.** 
+
+Según el reglamento de la mayoría de las federaciones de triatlón (como la ITU, FETRI, USAT, etc.), existe una regla de oro respecto al casco:
+
+> **El casco debe estar abrochado en todo momento mientras estés en contacto con la bicicleta.**
+
+### El orden correcto en la transición (T1 y T2):
+
+1. **Al salir a la bici (T1):** Lo **primero** que debes hacer antes de coger la bicicleta del soporte es **ponerte y abrocharte el casco**. Solo después puedes sacar la bici de la estructura. Si tocas la bici sin el casco abrochado, serás sancionado.
+2. **Al volver de la bici (T2):** Lo **último** que debes hacer al llegar con la bicicleta al soporte es aparcarla. **Solo cuando la bici esté bien colocada en el soporte**, puedes desabrocharte y quitarte el casco. 
+
+Si te desabrochas el casco mientras aún estás montado en la bici (llegando a la línea de dismounting) o mientras sostienes la bicicleta antes de colgarla, los jueces te mostrarán una **tarjeta amarilla** (o incluso roja dependiendo de la gravedad), lo que se traduce en una sanción de tiempo o descalificación.",No lo sé con mis fuentes.,"[reglamento_fetri, p. 47] [reglamento_fetri, p. 56] [reglamento_fetri, p. 56] [reglamento_fetri, p. 56]",correcta,no sabe,Sin RAG acierta: es una norma muy conocida. Con RAG contesta 'no lo sé' aunque tenía la norma (q) de la FETRI p. 56.
+4,"Según el reglamento de la Federación Española de Triatlón, ¿con cuántas sanciones por drafting te descalifican en una prueba de media distancia? ¿Se pueden recurrir?",Con tres sanciones (dos en distancia estándar o inferior). Las infracciones por drafting no se pueden apelar.,"Según el Reglamento de Competiciones de la Federación Española de Triatlón (FETRI), la respuesta a tus preguntas es la siguiente:
+
+### 1. ¿Con cuántas sanciones por *drafting* te descalifican en media distancia?
+
+En las pruebas de media distancia (y larga distancia) donde está prohibido el *drafting* (ir a rueda), la regla general es de **dos (2) tarjetas amarillas** por esta infracción, o la acumulación de ciertas sanciones que impliquen descalificación. 
+
+*   **Primera sanción por drafting:** Se penaliza con una **tarjeta amarilla** y una sanción de tiempo (que en media distancia suelen ser **5 minutos** que debes cumplir en el *Penalty Box* o área de penalti).
+*   **Segunda sanción por drafting:** Supone la **descalificación (tarjeta roja)** directa de la prueba.
+
+*Nota:* Dependiendo de la gravedad de la infracción o si se considera un *drafting* flagrante o intencionado, los jueces pueden aplicar una descalificación directa (tarjeta roja) desde la primera infracción, sin pasar por la tarjeta amarilla.
+
+---
+
+### 2. ¿Se pueden recurrir?
+
+**No durante la carrera, pero sí mediante una protesta formal posterior.**
+
+Según los procedimientos disciplinarios y de arbitraje de la FETRI:
+
+1.  **No se puede reclamar a los jueces en ruta:** La apreciación de un juez de competición sobre el *drafting* es un hecho técnico inapelable *in situ*. No puedes parar a discutir con el juez ni te van a quitar la sanción en el momento por decir que no lo has hecho.
+2.  **Protesta formal:** Una vez terminada la carrera, se puede presentar una **protesta por escrito** al Juez Arbitro (Delegado Técnico), acompañada normalmente de una fianza económica establecida en la normativa de la prueba. Esta protesta debe hacerse en un plazo de tiempo muy corto tras cruzar la línea de meta (habitualmente en menos de 15 o 30 minutos desde la publicación de los resultados de sanciones).
+3.  **Recursos posteriores:** Si la protesta es desestimada por el Juez Arbitro, se puede elevar un recurso al Comité de Competición de la prueba y, posteriormente, a los órganos disciplinarios de la federación (Comité de Apelación o Comité de Disciplina Deportiva).
+
+**La realidad práctica:** 
+Recurrir una sanción de *drafting* basándose únicamente en la palabra del triatleta contra la del juez **es prácticamente imposible de ganar**. Los jueces de la FETRI tienen presunción de veracidad. Para que prospere un recurso de este tipo, normalmente se necesitarían pruebas videográficas irrefutables (como una cámara cenital o trasera continua que demuestre que no ibas a menos de la distancia reglamentaria, por ejemplo, 12 o 20 metros según la normativa específica de la prueba).","Según el reglamento de la Federación Española de Triatlón, tres sanciones por drafting en competiciones de Media Distancia o superior supondrán la descalificación del deportista [reglamento_fetri, p. 51]. Además, las infracciones por drafting no podrán ser apeladas [reglamento_fetri, p. 51].","[reglamento_fetri, p. 51] [reglamento_fetri, p. 131] [reglamento_fetri, p. 28] [reglamento_fetri, p. 49]",inventada,correcta,"Sin RAG dice dos tarjetas y 5 minutos (falso). Con RAG: tres sanciones y no se pueden apelar, FETRI p. 51."
+5,Tengo asma y uso Ventolin inhalado. ¿Cuánto puedo tomar el día de la carrera sin dar positivo?,"Ventolin inhalado es salbutamol por vía inhalatoria: permitido hasta 1600 microgramos en 24 horas, sin pasar de 600 microgramos en 8 horas. Más de 1000 ng/mL en orina se considera un resultado adverso.","*Aviso importante: Esta información es orientativa y no sustituye el consejo médico profesional ni las directrices oficiales de las autoridades antidopaje (como la WADA/AEPSAD).*
+
+La respuesta corta es: **puedes tomar Ventolin (salbutamol) el día de la carrera dentro de los límites terapéuticos permitidos, pero debes tener cuidado con las dosis y, en la mayoría de los casos, necesitas una exención o justificación médica.**
+
+Aquí te explico los puntos clave según la Agencia Mundial Antidopaje (WADA/AMA):
+
+### 1. El Salbutamol está permitido, pero con límites
+El salbutamol es un agonista beta-2. Su uso por vía inhalada está permitido **sin necesidad de una Autorización de Uso Terapéutico (AUT)** previa, *siempre y cuando* no superes los siguientes límites:
+*   Máximo de **1600 microgramos cada 24 horas**.
+*   Con un límite máximo de **600 microgramos cada 8 horas**.
+
+*Nota práctica:* Un puff (inhalación) estándar de Ventolin suele tener 100 microgramos. Por lo tanto, 1600 mcg equivalen a **16 puffs al día**. (Esta es una cantidad *muy alta* para un uso normal; si necesitas tantos puffs, tu asma no está controlada y no deberías correr).
+
+### 2. El peligro del exceso (dar positivo)
+Aunque el límite sea de 1600 mcg/24h, la WADA establece un **límite en la concentración en orina (1000 ng/mL)**. 
+Si te hacen un control antidopaje y se detecta una concentración superior a esa, se considerará un Resultado Adverso (positivo), a menos que puedas demostrar científicamente que fue mediante el uso inhalado terapéutico (lo cual es muy complejo y puede acarrear sanciones temporales mientras se investiga).
+
+### 3. Recomendaciones para el día de la carrera:
+1.  **Usa tu pauta habitual:** Tómatelo como te haya recetado tu médico para prevenir el asma inducido por el ejercicio (suele ser 1 o 2 puffs unos 15-20 antes de empezar).
+2.  **Lleva la prescripción médica:** Aunque no compitas a nivel olímpico, si participas en federaciones o carreras populares bajo regulación antidopaje, es vital que lleves encima la receta médica o un informe de tu médico que certifique que tienes asma.
+3.  **No excedas la dosis por nervios:** El día de la carrera hay nervios, y la sensación de falta de aire previa a la salida puede confundirse con broncospasmo. No abuses de los puffs ""por si acaso"".
+4.  **Consulta la normativa específica de tu federación:** Si la carrera es oficial (RFEA, Ironman, UEFA, etc.), revisa la lista de sustancias prohibidas de la agencia antidopaje de tu país (en España, la CELAD).
+
+**Consejo extra:** Si vas a competir en un evento oficial y tienes dudas, consulta con un médico deportivo antes de la carrera para asegurarte de que tu historial médico está en regla. ¡Mucha suerte en la carrera y cuida tus pulmones!","Para el Ventolin inhalado (cuyo principio activo es el salbutamol), la dosis máxima permitida es de hasta 1600 microgramos durante 24 horas en dosis divididas, sin superar los 600 microgramos durante 8 horas a partir de cualquier dosis [lista_prohibida_wada, p. 9]. 
+
+Además, debes tener en cuenta que la presencia de salbutamol en orina en exceso de 1000 ng/mL no es consistente con el uso terapéutico y se considerará un Resultado Analítico Adverso (AAF), a menos que pruebes mediante un estudio farmacocinético controlado que el resultado anormal fue consecuencia de una dosis terapéutica por vía inhalatoria de hasta la dosis máxima indicada [lista_prohibida_wada, p. 9]. El salbutamol está prohibido en todo momento (tanto dentro como fuera de competición) [lista_prohibida_wada, p. 9].","[cima] [cima] [lista_prohibida_wada, p. 9] [lista_prohibida_wada, p. 9] [lista_prohibida_wada, p. 12] [lista_prohibida_wada, p. 6]",correcta,correcta,"Las dos dan 1600 µg/24 h y 600 µg/8 h. Con RAG además el umbral de 1000 ng/mL, todo citado (WADA p. 9)."
+6,¿Y si en vez del inhalador tomo Ventolin jarabe?,"Ventolin jarabe es salbutamol por vía oral. Los beta-2 agonistas están prohibidos siempre; la excepción es solo el salbutamol inhalado dentro de los límites, así que por vía oral está prohibido salvo con una autorización de uso terapéutico.","Cambiar el inhalador de Ventolin (salbutamol) por el jarabe **no es equivalente ni recomendable** en la mayoría de los casos, y debes consultarlo con tu médico antes de hacerlo. 
+
+Aquí te explico las principales diferencias y por qué el inhalador suele ser mucho mejor:
+
+### 1. El inhalador actúa más rápido
+* **Inhalador:** El medicamento va directo a los bronquios (las vías respiratorias). Hace efecto en **1 a 5 minutos**, lo cual es vital si estás teniendo una crisis o falta de aire repentina.
+* **Jarabe:** Al tomarlo por vía oral, tiene que pasar por el estómago, ser absorbido por la sangre y viajar por todo el cuerpo antes de llegar a los pulmones. Tarda mucho más tiempo en hacer efecto (a veces **entre 30 y 60 minutos**).
+
+### 2. Más efectos secundarios con el jarabe
+Como el jarabe se distribuye por todo el cuerpo a través de la sangre (efecto sistémico), es mucho más fácil que cause efectos secundarios molestos, tales como:
+* Taquicardia (corazón acelerado o palpitaciones fuertes).
+* Temblor intenso en las manos.
+* Nerviosismo o hiperactividad (especialmente notable en niños).
+* Dolor de cabeza.
+
+El inhalador, al ir directo al pulmón, requiere una dosis mucho menor y causa muchos menos efectos secundarios en el resto del cuerpo.
+
+### 3. ¿Para quién se suele usar el jarabe?
+Hoy en día, el uso del jarabe de salbutamol es **muy limitado**. A veces se recorta en niños muy pequeños (bebés) a los que les es imposible usar un inhalador con cámara espaciadora, aunque incluso en ellos las guías médicas actuales prefieren casi siempre el inhalador con adaptador.
+
+---
+
+### ¿Qué debes hacer?
+* **Si te cuesta usar el inhalador:** Pide a tu médico o enfermero que te enseñe la técnica correcta o que te recete una **cámara espaciadora** (aerocámara), que facilita muchísimo la inhalación.
+* **Si prefieres el jarabe por comodidad:** Recuerda que la eficacia es menor y los efectos secundarios mayores. No hagas el cambio por cuenta propia.
+
+*Nota: Esta información es orientativa. Consulta siempre con tu médico o farmacéutico antes de modificar la pauta de cualquier medicamento respiratorio.*","El principio activo de Ventolin jarabe es el salbutamol y se toma por vía oral [cima]. 
+
+El salbutamol está prohibido en todo momento (tanto en competición como fuera de competición) [lista_prohibida_wada, p. 9]. 
+
+En cuanto a si depende de la vía o de la dosis:
+- La presencia en orina de salbutamol en exceso de 1000 ng/mL no es consistente con el uso terapéutico y se considerará un Resultado Analítico Adverso (AAF), a menos que el deportista demuestre, mediante un estudio farmacocinético controlado, que el resultado anormal fue consecuencia de una dosis terapéutica **por inhalación** hasta la dosis máxima indicada [lista_prohibida_wada, p. 9].
+- El límite máximo especificado para el uso terapéutico es **inhaltorio**: máximo 1600 microgramos en 24 horas en dosis divididas que no excedan los 600 microgramos en 8 horas a partir de cualquier dosis [lista_prohibida_wada, p. 9]. Dado que el Ventolin jarabe se administra por **vía oral** [cima], no aplica la excepción de la dosis terapéutica por inhalación descrita en la WADA para el salbutamol.","[cima] [cima] [lista_prohibida_wada, p. 9] [lista_prohibida_wada, p. 9] [lista_prohibida_wada, p. 12] [lista_prohibida_wada, p. 6]",parcial,correcta,"Sin RAG habla de efectos del jarabe pero no del dopaje. Con RAG: salbutamol por vía oral, prohibido; solo se permite inhalado dentro del límite (WADA p. 9)."
+7,Estoy resfriado. ¿Me da positivo tomar Frenadol Descongestivo antes de una carrera?,"Puede: Frenadol Descongestivo lleva pseudoefedrina, que está prohibida en competición cuando su concentración en orina supera 150 microgramos por mililitro.","**Sí, es muy probable que te dé positivo** en un control antidopaje si tomas **Frenadol Descongestivo** antes de una carrera. 
+
+El motivo es que contiene un principio activo prohibido en el deporte: la **Pseudoefedrina**.
+
+Aquí te explico los detalles:
+
+1. **La Pseudoefedrina:** Es un descongestivo nasal que actúa como estimulante del sistema nervioso central. Está incluida en la **Lista de Prohibiciones de la Agencia Mundial Antidopaje (AMA)** **en competición**. 
+2. **¿Cuándo se considera ""en competición""?** Las normas antidopaje suelen considerar que estás ""en competición"" desde las **23:59 del día anterior** a la prueba deportiva. Por lo tanto, tomarlo el mismo día de la carrera o la noche antes ya te sitúa en zona de riesgo.
+3. **Otros componentes:** El Frenadol Descongestivo también lleva *Paracetamol* (permisible) y *Dextrometorfano* (la mayoría de antitusivos ya no están prohibidos, pero la pseudoefedrina es el claro problema aquí).
+
+### ¿Qué alternativas tienes?
+Si estás resfriado pero vas a correr (lo cual ya es desaconsejable si tienes fiebre o síntomas bajados al pecho, por salud y rendimiento), debes revisar los prospectos o consultar la base de datos oficial de medicamentos de tu país (como **Nomenclátor** o la app de la AEPSAD/CLEA en España) para buscar alternativas permitidas. 
+
+Por lo general, para los síntomas del resfriado en competición se suelen permitir:
+* **Paracetamol** (para el dolor y la fiebre).
+* **Ibuprofeno** u otros antiinflamatorios (permitidos, aunque con precaución por el estómago al correr).
+* Antihistamínicos de segunda generación (algunos están permitidos, otros no, cuidado).
+* **Evita totalmente** cualquier medicamento que contenga *pseudoefedrina, fenilefrina o efedrina* (decongestivos orales).
+
+**Mi recomendación:** Si estás resfriado, valora si realmente debes competir. Tu cuerpo necesita descansar para recuperarse, y correr con una infección puede derivar en problemas mayores (como miocarditis). Si decides correr, **no tomes Frenadol Descongestivo**.","El medicamento **Frenadol Descongestivo cápsulas duras** tiene como principios activos: paracetamol, clorfenamina, dextrometorfano y pseudoefedrina, y se toma por vía oral [cima].
+
+Si buscamos estas sustancias en la lista de la WADA:
+- La **pseudoefedrina** está prohibida (aparece en la lista como *Pseudoefedrine*****) [lista_prohibida_wada, p. 16]. 
+
+No lo sé con mis fechas/límites exactos de cuándo o en qué condiciones exactas está prohibida la pseudoefedrina ni si depende de la vía o dosis, con mis fuentes [lista_prohibida_wada, p. 16].","[cima] [cima] [lista_prohibida_wada, p. 5] [lista_prohibida_wada, p. 16] [lista_prohibida_wada, p. 16] [lista_prohibida_wada, p. 15]",parcial,parcial,"Las dos dicen que la pseudoefedrina está prohibida, pero ninguna da el umbral de 150 µg/mL: con RAG no se recupera ese trozo (limitación de los embeddings entre idiomas)."
+8,Me han recetado Adolonta para el dolor. ¿Lo puedo tomar el día de la competición?,"No. Adolonta es tramadol, un narcótico prohibido en competición (sección S7 de la lista WADA).","La respuesta corta es: **No es recomendable y, en la mayoría de los casos de competición federada, está prohibido.**
+
+Aquí te explico los motivos detalladamente, tanto desde el punto de vista de tu salud y rendimiento como de la normativa antidopaje:
+
+### 1. Motivos de salud y seguridad (Efectos secundarios)
+El principio activo de la Adolonta es el **tramadol**, un analgésico opioide de acción central. Afecta al sistema nervioso central y puede provocar efectos secundarios incompatibles con la práctica deportiva intensa:
+*   **Somnolencia y mareos:** Reduce drásticamente los tiempos de reacción y la concentración, lo que aumenta mucho el riesgo de sufrir accidentes o lesiones.
+*   **Náuseas y vómitos:** Frecuentes al hacer esfuerzos físicos bajo los efectos de opioides.
+*   **Disminución del rendimiento:** Puede afectar a tu coordinación, equilibrio y capacidad aeróbica.
+
+### 2. Normativa Antidopaje (¡Muy importante!)
+Si compites a nivel federado o en eventos sujetos a las normas de la Agencia Mundial Antidopaje (WADA/AMA), debes saber lo siguiente sobre el tramadol:
+*   **Prohibido en competición:** El tramadol está incluido en la **Lista de Prohibiciones de la AMA** para los periodos de competición. 
+*   **¿Cuándo se considera ""en competición""?** Generalmente, el periodo de competición comienza a las 23:59 h del día anterior a la prueba y se extiende hasta que finaliza la misma y el proceso de control antidopaje (si lo hubiera).
+*   *Nota:* Aunque en años anteriores solo estaba ""en observación"", la AMA decidió **prohibirlo totalmente en competición** a partir del **1 de enero de 2024**.
+
+### 3. El origen del dolor
+Si necesitas tomar un opioide fuerte como la Adolonta para poder competir, significa que tu cuerpo tiene una lesión o un dolor significativo. Competir en esas condiciones puede convertir una molestia leve en una lesión crónica o grave.
+
+---
+
+### ¿Qué debes hacer?
+1.  **Consulta con tu médico:** Explícale que eres deportista y que tienes una competición próxima. Pregúntale si hay alternativas analgésicas que sean compatibles con el deporte y que no estén prohibidas.
+2.  **Revisa la medicación si estás federado:** Si por prescripción médica indispensable tuvieras que tomar una sustancia prohibida, tendrías que solicitar una **TUE (Autorización de Uso Terapéutico)** antes de competir, aunque con los analgésicos para el dolor agudo de una competición puntual rara vez se concede si se puede posponer la prueba o usar otra medicación.
+
+*Aviso: Esta información es orientativa. Consulta siempre con tu médico o farmacéutico antes de combinar medicamentos con la práctica deportiva competitiva.*","Para responder a tu consulta sobre el medicamento **Adolonta**:
+
+* **Principio activo y vía:** El Adolonta contiene como principio activo el **tramadol** [cima]. Se puede tomar por **vía oral** (en cápsulas duras) [cima] o mediante **vía intramuscular, vía intravenosa y vía subcutánea** (en solución inyectable y para perfusión) [cima].
+* **Situación en la WADA:** El tramadol está incluido dentro de los narcóticos [lista_prohibida_wada, p. 17]. 
+* **Cuándo está prohibido:** Está prohibido **en competición** (*PROHIBITED IN-COMPETITION*) [lista_prohibida_wada, p. 17]. 
+
+Por lo tanto, al estar prohibido en competición, no debes tomarlo el día de la misma.","[cima] [cima] [lista_prohibida_wada, p. 10] [lista_prohibida_wada, p. 5] [lista_prohibida_wada, p. 10] [lista_prohibida_wada, p. 6] [lista_prohibida_wada, p. 17]",correcta,correcta,Las dos: tramadol prohibido en competición. Con RAG cita CIMA y la WADA p. 17 (sección S7).
+9,Tomo Sumial (propranolol) para la tensión. ¿Está prohibido en triatlón?,"No. Los betabloqueantes solo están prohibidos en algunos deportes (tiro con arco, golf, tiro, billar, dardos, automovilismo…) y el triatlón no está en esa lista.","**Sí, el propranolol (Sumial) está prohibido en triatlón** bajo ciertas circunstancias, ya que pertenece a la familia de los **betabloqueantes**.
+
+Aquí te explico los detalles según las normativas de la Agencia Mundial Antidopaje (WADA/AMA) y la Federación Española de Triatlón (FETRI):
+
+### 1. ¿Está prohibido?
+* **En competición:** **SÍ, está prohibido** en todo momento (fuera y dentro de la competición) en el triatlón. 
+* Los betabloqueantes reducen el ritmo cardíaco y la presión arterial, y disminuyen los temblores, lo que en algunos deportes se considera una ventaja para calmar los nervios (por ejemplo, en tiro o arquería), pero la prohibición se extiende a muchos deportes de resistencia y alta intensidad como el triatlón.
+
+### 2. ¿Qué pasa si lo necesitas por salud (hipertensión, migrañas, ansiedad)?
+Si un médico te ha recetado Sumial para tratar una condición médica real, **puedes tomarlo**, pero **no puedes competir** con él en un evento oficial a menos que solicites y obtengas una **TUE (Autorización de Uso Terapéutico)**.
+
+* **TUE (Therapeutic Use Exemption):** Es un permiso especial que debes solicitar a la agencia antidopaje correspondiente (en España, la CELAD) antes de competir. Debes demostrar con informes médicos que tienes una enfermedad que requiere este tratamiento indispensable.
+* Si compites en pruebas populares (sprint, olímpico sin licencia federativa o de carácter muy recreativo), los controles antidopaje son raros, pero **a nivel reglamentario sigue estando prohibido**. Si tienes licencia federativa y participas en pruebas oficiales, el riesgo de un control positivo existe.
+
+### ¿Qué debes hacer ahora?
+1. **No lo suspendas de golpe:** El propranolol es un medicamento para el corazón y la tensión; dejarlo sin supervisión médica puede causar un efecto rebote peligroso (taquicardia, subida brusca de tensión).
+2. **Habla con tu médico:** Explícale que practicas triatlón y que este fármaco está prohibido en competición. Pregúntale si existe una **alternativa terapéutica** que no esté prohibida por la Agencia Antidopaje (hay muchos otros medicamentos para la hipertensión o la ansiedad que *no* son betabloqueantes y son totalmente legales para competir).
+3. **Consulta a tu federación:** Si el médico te confirma que no puede cambiarte el medicamento, debes tramitar la TUE antes de volver a tomar la salida en una competición oficial.
+
+*Nota: Esta información es orientativa. Consulta siempre con tu médico y revisa la lista de sustancias prohibidas actualizada de la Agencia Española de Protección de la Salud en el Deporte (CELAD).*","El principio activo de Sumial es el propranolol [cima]. El propranolol pertenece a la clase de los betabloqueantes [lista_prohibida_wada, p. 20]. 
+
+Los betabloqueantes están prohibidos exclusivamente en competición (*In-Competition*) y únicamente en los siguientes deportes: tiro con arco (WA)*, automovilismo (FIA), billar (todas las disciplinas) (WCBS), dardos (WDF), golf (IGF), minigolf (WMF), tiro (ISSF, IPC)* y actividades subacuáticas (CMAS)* en todas las subdisciplinas de apnea, pesca submarina y tiro al blanco [lista_prohibida_wada, p. 20]. El triatlón no se encuentra entre los deportes en los que están prohibidos.","[cima] [cima] [lista_prohibida_wada, p. 5] [lista_prohibida_wada, p. 6] [lista_prohibida_wada, p. 6] [lista_prohibida_wada, p. 20]",inventada,correcta,"Sin RAG dice que el propranolol SÍ está prohibido en triatlón (falso). Con RAG: solo en tiro con arco, golf, tiro… y el triatlón no está (WADA p. 20)."
+10,¿Quién ganó el Campeonato del Mundo de Ironman de 2025?,No está en nuestras fuentes: con RAG tiene que decir que no lo sabe.,"Lo siento, pero a fecha de hoy (mayo de 2024), **todavía no se ha celebrado** el Campeonato del Mundo de Ironman de 2025, por lo que aún no hay ningúna ganadora o ganador. 
+
+Generalmente, el Campeonato del Mundo Masculino y Femenino se alternan cada año entre Kona (Hawái) y otro ubicación internacional, y las pruebas se suelen disputar entre septiembre y noviembre de cada año. 
+
+Si te referías a la edición más reciente celebrada, el **Campeonato del Mundo de 2023** (cuyas pruebas se dividieron entre Niza y Kona), los ganadores fueron:
+* **Hombres (Niza, 2023):** Sam Laidlow (Francia)
+* **Mujeres (Kona, 2023):** Lucy Charles-Barclay (Reino Unido)
+
+Y el campeonato de **2024** se celebrará a lo largo de este año (la categoría femenina en Niza en septiembre y la masculina en Kona en octubre).",No lo sé con mis fuentes,"[reglamento_fetri, p. 67] [reglamento_fetri, p. 112] [reglamento_fetri, p. 13] [reglamento_fetri, p. 12]",no sabe,correcta,Sin RAG dice que aún no se ha celebrado (su fecha de corte) y cambia a otro año. Con RAG: 'No lo sé con mis fuentes'.
