@@ -286,13 +286,16 @@ Portada y 5 páginas escritas. Se renderizan con `QUARTO_PYTHON=.venv/bin/python
 
 | | qwen sin RAG | qwen con RAG | Gemini sin RAG | Gemini con RAG |
 |---|---|---|---|---|
-| Correcta | 0 | 2 | 3 | **7** |
-| Parcial | 0 | 4 | 2 | 1 |
+| Correcta | 0 | 2 | 2 | **9** |
+| Parcial | 0 | 5 | 3 | 0 |
 | Inventada | 9 | 2 | 4 | **0** |
-| No sabe | 1 | 2 | 1 | 2 |
+| No sabe | 1 | 1 | 1 | 1 |
 
 - Gemini sin RAG sabe más que qwen pero aún inventa 4, entre ellas que el propranolol está prohibido en triatlón.
-- Con RAG, Gemini no inventa ninguna. En 2 preguntas dice "no lo sé" con la respuesta delante (demasiado prudente) y en la 7 falta el umbral (limitación de los embeddings).
+- Con RAG, Gemini acierta 9 y no inventa ninguna. Solo falla la 7 (Frenadol): dice "no lo sé" porque el trozo con el umbral no se recupera (limitación de los embeddings).
+- **Arreglo del prompt (después de la primera ronda).** Con el prompt anterior Gemini acertaba 7 y en 2 preguntas decía "no lo sé" con la respuesta delante; en la app, la de Sumial explicaba bien que el triatlón no está entre los deportes prohibidos y terminaba con "no lo sé con mis fuentes". La regla "di no lo sé si el contexto no tiene la respuesta" la aplicaba cuando la respuesta era "no aparece en la lista". Se cambió por tres reglas: empezar por la respuesta directa; si algo solo se aplica en ciertos casos y la pregunta no es uno de ellos, la respuesta es "no"; y "no lo sé" solo si ningún trozo trata el tema. Probado primero con las preguntas 1, 3, 9 y la de control (que sigue diciendo "no lo sé"), y después se repitieron **las dos comparativas** completas, porque el prompt es el mismo para qwen.
+- Con el prompt nuevo, qwen con RAG queda en 2 correctas, 5 parciales, 2 inventadas y 1 "no sabe"; en la 7 llega a decir que el Frenadol **no** da positivo: el modelo pequeño puede ser peligroso aunque tenga los trozos.
+- **¿Hace falta un modelo peor para que se note el RAG?** No: Gemini sin RAG solo acierta 2 de 10 y se inventa 4. Elegir el modelo para que el RAG luzca más sería hacer trampas con la comparativa.
 - **Gemini no es del todo repetible** aunque se le pida `temperature=0`: la pregunta 1 la acertó en una ejecución y en otra dijo "no lo sé".
 - Veredictos propuestos por Claude, con su nota en la columna `nota`: **hay que revisarlos**.
 

@@ -141,8 +141,8 @@ Cada archivo produce algo que usa el siguiente. Estos "contratos" no se cambian 
 | Principios activos de CIMA | 24 (solo medicamentos comercializados y de marca) |
 | Trozos con 800 caracteres | 1.792 |
 | Experimento de chunking (dato exacto recuperado) | 300 → 4/9 · **800 → 8/9** · 1500 → 8/9 con un 77 % más de texto |
-| qwen sin RAG / con RAG | 0 correctas y 9 inventadas → 2 correctas, 4 parciales, 2 inventadas, 2 "no sabe" |
-| Gemini sin RAG / con RAG | 3 correctas y 4 inventadas → **7 correctas, 0 inventadas**, 1 parcial, 2 "no sabe" |
+| qwen sin RAG / con RAG | 0 correctas y 9 inventadas → 2 correctas, 5 parciales, 2 inventadas, 1 "no sabe" |
+| Gemini sin RAG / con RAG | 2 correctas y 4 inventadas → **9 correctas, 0 inventadas**, 1 "no sabe" |
 | App | https://asistente-triatlon-921790710609.europe-west1.run.app |
 
 Los veredictos los propuso Claude y **hay que revisarlos entre todos** antes de la exposición.
@@ -329,16 +329,17 @@ Los **veredictos** (`correcta`, `parcial`, `inventada`, `no sabe`) se ponen a ma
 
 | | qwen sin RAG | qwen con RAG | Gemini sin RAG | Gemini con RAG |
 |---|---|---|---|---|
-| Correcta | 0 | 2 | 3 | **7** |
-| Parcial | 0 | 4 | 2 | 1 |
+| Correcta | 0 | 2 | 2 | **9** |
+| Parcial | 0 | 5 | 3 | 0 |
 | Inventada | 9 | 2 | 4 | **0** |
-| No sabe | 1 | 2 | 1 | 2 |
+| No sabe | 1 | 1 | 1 | 1 |
 
 Qué se ve:
 
 - **Sin RAG, los dos se inventan cosas con seguridad.** qwen: neopreno prohibido "a 28 ºC", Adolonta "es adenosina". Gemini: que el propranolol **está prohibido en triatlón** (falso).
 - **Con RAG, ninguno inventa datos de fuera** y los dos citan la página.
-- **La recuperación es la misma para los dos** (8/9 con el dato exacto); la diferencia está en **leer bien** los trozos. qwen confunde cifras del mismo trozo; Gemini acierta 7, y en 2 es demasiado prudente ("no lo sé" con la respuesta delante).
+- **La recuperación es la misma para los dos** (8/9 con el dato exacto); la diferencia está en **leer bien** los trozos. qwen confunde cifras del mismo trozo y llega a decir que el Frenadol no da positivo; Gemini acierta 9 y solo falla la del Frenadol (dice "no lo sé" porque no se recupera el trozo del umbral).
+- **El prompt también cuenta**: con una primera versión Gemini acertaba 7, porque contestaba "no lo sé" cuando la respuesta era "no aparece en la lista" (Sumial). Dos reglas nuevas lo llevaron a 9 (apartado 10.2).
 
 ## La limitación medida
 
@@ -389,7 +390,12 @@ de abajo (puede estar en inglés).
   la vía o de la dosis.
 - Da las cifras exactas del contexto y cita la fuente entre corchetes después
   de cada dato, por ejemplo [reglamento_fetri, p. 28].
-- Solo si el contexto no tiene la respuesta, di: "No lo sé con mis fuentes".
+- Empieza por la respuesta directa (sí, no, la cifra) y después explícala.
+- Si el contexto dice que algo solo se aplica en ciertos casos (deportes,
+  distancias, vías) y la pregunta no es uno de ellos, la respuesta es "no":
+  dilo claramente.
+- Di "No lo sé con mis fuentes" solo si ningún trozo del contexto trata el
+  tema de la pregunta.
 
 Contexto:
 {contexto}
@@ -397,7 +403,7 @@ Contexto:
 Pregunta: {pregunta}
 ```
 
-Por qué así: "**SOLO** el contexto" evita que invente; "cita la fuente" hace la respuesta comprobable; los pasos para medicamentos guían a un modelo pequeño; y la salida "No lo sé con mis fuentes" es lo que hace que en la pregunta de control no se invente nada. Con un prompt más corto, qwen decía "no lo sé" incluso con la respuesta delante.
+Por qué así: "**SOLO** el contexto" evita que invente; "cita la fuente" hace la respuesta comprobable; los pasos para medicamentos guían a un modelo pequeño; y la salida "No lo sé con mis fuentes" es lo que hace que en la pregunta de control no se invente nada. Con un prompt más corto, qwen decía "no lo sé" incluso con la respuesta delante. Y las dos últimas reglas se añadieron después de probar con Gemini: contestaba "no lo sé" cuando la respuesta era que algo **no** aparece en una lista (el triatlón no está entre los deportes donde se prohíben los betabloqueantes). Con ellas pasó de 7 a 9 correctas, y la pregunta de control sigue diciendo "no lo sé".
 
 ## `llamar_llm()` por dentro
 
@@ -465,6 +471,8 @@ gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 
 **¿Dónde está la clave de la API?** En Secret Manager de Google Cloud. Cloud Run la lee al arrancar; no está en el código ni en GitHub, y en la llamada va en una cabecera, no en la URL.
 
 **¿Por qué tarda la primera pregunta?** Arranque en frío: si nadie usa la app, Cloud Run la apaga, y al volver tiene que arrancar el contenedor y cargar el modelo de embeddings.
+
+**¿Qué cambiasteis en el prompt al probar con Gemini?** Dos reglas: empezar por la respuesta directa, y que si algo solo se aplica en ciertos casos y la pregunta no es uno de ellos, la respuesta es "no". Antes decía "no lo sé" en la de Sumial aunque tenía la respuesta. Pasó de 7 a 9 correctas.
 
 **¿Por qué el prompt obliga a citar?** Para que la respuesta se pueda comprobar y para que el modelo se ciña a los trozos; y para que diga "no lo sé" en vez de inventar.
 
