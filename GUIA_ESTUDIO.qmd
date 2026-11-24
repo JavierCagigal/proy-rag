@@ -1,0 +1,490 @@
+---
+title: "Guía de estudio del Trabajo 2"
+subtitle: "Asistente de competición para triatletas (RAG)"
+author: "Grupo 3: Miguel (P1), Javier (P2) y Alejandro (P3)"
+date: 2026-11-24
+date-format: long
+lang: es
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2.2cm
+      y: 2.2cm
+    toc: true
+    toc-depth: 2
+    section-numbering: "1.1"
+    fontsize: 10.5pt
+---
+
+# Cómo usar esta guía
+
+Cada uno defiende **su parte** en la exposición, y el profesor valora el dominio técnico individual. Esta guía está separada para que sepáis qué os toca:
+
+| Parte | Quién | Qué tiene que saber |
+|---|---|---|
+| **Parte común** (apartados 2 a 7) | **Los tres** | Qué es un RAG, qué modelos usamos, cómo se prueba, las cifras clave |
+| **P1: datos, preguntas y conclusiones** (apartado 8) | **Miguel** | `pipeline.py`, las fuentes, `preguntas.csv`, páginas 1 y 5 de la web |
+| **P2: recuperación y evaluación** (apartado 9) | **Javier** | `indexar.py`, `recuperar()`, `evaluar.py`, páginas 2 y 3 |
+| **P3: generación, app y despliegue** (apartado 10) | **Alejandro** | El resto de `rag.py`, `app.py`, Cloud Run, Gemini, la web, página 4 |
+
+Leed entera la parte común y la vuestra. Las de los demás, al menos por encima: si a uno le preguntan por algo que conecta con otra parte, tiene que saber de qué va.
+
+Al final de cada parte hay **preguntas que os puede hacer el profesor**, con su respuesta. El diario completo de cómo se construyó todo está en `PASOS.md`, en el repositorio.
+
+# Lo que pide el profesor
+
+Un **RAG** sobre un subtema de deporte, nutrición y ejercicio, y **demostrar con pruebas** que responde mejor que el mismo LLM sin contexto.
+
+| Fase | Qué pide | Lo que hemos hecho | Dónde |
+|---|---|---|---|
+| **A** | Pipeline de datos automático, mezclando fuentes | 3 PDF oficiales + la API de CIMA, sin ningún paso manual | `src/pipeline.py` |
+| **B** | Framework + base vectorial + chunking justificado | LangChain + ChromaDB; tamaño de trozo elegido con un experimento | `src/indexar.py`, `src/rag.py` |
+| **C** | 5-10 preguntas de nicho, sin RAG frente a con RAG | 10 preguntas, con dos modelos (qwen y Gemini) | `evaluacion/preguntas.csv`, `src/evaluar.py` |
+| **D** | App desplegada públicamente | Streamlit en Google Cloud Run, con Gemini | `app.py`, `Dockerfile` |
+| **E** | Extra opcional: reranking, filtros por metadatos o búsqueda híbrida | **Filtros por metadatos** (buscar solo en CIMA o solo en la WADA) y búsqueda por **palabra exacta** | `recuperar()` en `src/rag.py` |
+
+Además: una **web de Quarto** en GitHub Pages con todo explicado y la URL en Loop.
+
+# Qué es un RAG y qué hace el nuestro
+
+**RAG** = *Retrieval-Augmented Generation*, generación aumentada con recuperación. Un LLM solo sabe lo que aprendió al entrenarse: no conoce el reglamento de este año ni los medicamentos españoles, y cuando no sabe algo, **se lo inventa con seguridad** (eso se llama *alucinar*). Un RAG, antes de preguntar al LLM, **busca en nuestros documentos** los trozos que responden a la pregunta y se los pega en el prompt. El LLM ya no contesta de memoria: contesta **leyendo** lo que le damos, y cita de dónde lo saca.
+
+Es como un examen con apuntes: el LLM sabe redactar y alguien le busca las 4 páginas que responden a cada pregunta.
+
+## Las dos fases
+
+**Una vez (preparar):**
+
+1. `pipeline.py` descarga los documentos y saca el texto limpio → `corpus.jsonl`.
+2. `indexar.py` lo parte en **trozos** de 800 caracteres, convierte cada trozo en un **vector** (embedding) y lo guarda en **Chroma**.
+
+**En cada pregunta (responder):**
+
+3. La pregunta también se convierte en vector y Chroma devuelve los trozos **más parecidos**.
+4. Se monta el **prompt**: instrucciones + trozos + pregunta.
+5. El LLM responde usando solo esos trozos y citando `[fuente, p. N]`.
+
+Tres ideas que hay que saber decir:
+
+- **Se trocea una vez, no en cada pregunta.** En cada pregunta solo se busca. Por eso es rápido.
+- **El LLM no busca nada.** La búsqueda la hacen el modelo de embeddings y Chroma, con matemáticas. El LLM solo redacta al final.
+- **El LLM no aprende nada.** No se reentrena. Cuando salga la lista de la WADA de 2027, se cambia la URL, se vuelve a ejecutar `pipeline.py` e `indexar.py`, y listo.
+
+## Por qué este tema
+
+El RAG gana cuando la respuesta es **concreta** (una cifra), **actual** (cambia cada año) y **de nicho** (poco presente en internet). Del gimnasio en general un LLM ya sabe mucho y la diferencia no se vería. Del reglamento de 2026, de la lista de la WADA de 2026 y de qué lleva el "Adolonta", no.
+
+Nuestro asistente responde dos tipos de pregunta:
+
+- **Reglamento**: penalizaciones por ir a rueda (*drafting*), neopreno, transiciones.
+- **"¿Me da positivo?"**: el deportista escribe el **nombre comercial** de un medicamento español. CIMA dice su principio activo y su vía (inhalado, oral…), y la lista de la WADA dice si está prohibido.
+
+# Los modelos que usamos
+
+En el proyecto hay **tres modelos**, y hacen cosas distintas. Esto lo tenéis que tener claro los tres.
+
+| Modelo | Tipo | Para qué | Dónde corre |
+|---|---|---|---|
+| `intfloat/multilingual-e5-small` | **Embeddings** | Convertir trozos y preguntas en vectores de 384 números para buscar por significado | En el ordenador (CPU) y dentro de Cloud Run |
+| `qwen2.5:3b` | **LLM** (3.000 millones de parámetros) | Redactar la respuesta. En local y en la primera comparativa | En el Mac, con **Ollama** |
+| `gemini-3.5-flash-lite` | **LLM** de Google, mucho mayor | Redactar la respuesta en la **app publicada** y en la segunda comparativa | En los servidores de Google, por **API** |
+
+## ¿Al final usamos Gemini en vez de Ollama?
+
+**En la app publicada, sí: usa Gemini.** En local seguimos usando Ollama con qwen. Quien lo decide es una sola función, `llamar_llm()`:
+
+- Si existe la variable de entorno `GEMINI_API_KEY` → usa Gemini. Es lo que pasa en Cloud Run.
+- Si no existe → usa Ollama con qwen. Es lo que pasa en el Mac.
+
+**Por qué no Ollama en la nube:** lo probamos metiendo Ollama dentro del contenedor de Cloud Run y lo descartamos: la imagen pesaba unos 6 GB, cada respuesta tardaba 10-30 segundos en CPU y necesitaba 4 CPU y 8 GB (más caro). **Por qué `gemini-3.5-flash-lite`:** está en el plan gratuito, Google lo presenta como el más rápido y barato, y todavía respeta `temperature=0` (en los Gemini 3.6 y posteriores ese parámetro se ignora).
+
+**Por qué hay dos comparativas:** la regla es comparar **el mismo modelo** con y sin RAG. Lo hicimos con qwen (en local) y con Gemini (el de la app). Así se ve además que el tamaño del modelo importa.
+
+# Mapa del proyecto
+
+```
+proy-rag/
+├── AGENTS.md            reglas y decisiones (para las IA y para nosotros)
+├── PASOS.md             diario: qué se hizo, qué es cada cosa y por qué
+├── GUIA_PROYECTO.md     el plan inicial
+├── _quarto.yml, index.qmd     la web (portada)
+└── rag_project/
+    ├── src/
+    │   ├── pipeline.py      Fase A · P1 Miguel
+    │   ├── indexar.py       Fase B · P2 Javier
+    │   ├── rag.py           Fase B/D · recuperar() P2 Javier, el resto P3 Alejandro
+    │   └── evaluar.py       Fase C · P2 Javier
+    ├── app.py               Fase D · P3 Alejandro
+    ├── Dockerfile, arrancar.sh, .gcloudignore   despliegue · P3 Alejandro
+    ├── evaluacion/preguntas.csv     las 10 preguntas · P1 Miguel
+    ├── data/raw/            PDF y JSON descargados (no se suben a git)
+    ├── data/processed/corpus.jsonl  el corpus (sí se sube)
+    ├── chroma/              la base vectorial (no se sube: se regenera)
+    ├── resultados/          chunking.csv, comparativa.csv, comparativa_gemini.csv
+    └── 01-datos.qmd … 05-conclusiones.qmd   páginas de la web
+```
+
+## Lo que une cada parte
+
+Cada archivo produce algo que usa el siguiente. Estos "contratos" no se cambian sin avisar:
+
+- `pipeline.py` → `corpus.jsonl`: una línea por página de PDF y una por medicamento, con `fuente`, `url`, `pagina` y `texto`. Los de CIMA llevan además `principio_activo` y `pagina` vacía.
+- `indexar.py` → colecciones de Chroma `trozos_300`, `trozos_800` y `trozos_1500`.
+- `rag.py` → `cargar_base()`, `recuperar()`, `responder_sin_rag()` y `responder_con_rag()`. La app y la evaluación **solo** usan estas funciones.
+
+# Las cifras que hay que saberse
+
+| Dato | Valor |
+|---|---|
+| Corpus | 995 líneas: 204 páginas de World Triathlon, 134 de la FETRI, 20 de la WADA y 637 medicamentos |
+| Principios activos de CIMA | 24 (solo medicamentos comercializados y de marca) |
+| Trozos con 800 caracteres | 1.792 |
+| Experimento de chunking (dato exacto recuperado) | 300 → 4/9 · **800 → 8/9** · 1500 → 8/9 con un 77 % más de texto |
+| qwen sin RAG / con RAG | 0 correctas y 9 inventadas → 2 correctas, 4 parciales, 2 inventadas, 2 "no sabe" |
+| Gemini sin RAG / con RAG | 3 correctas y 4 inventadas → **7 correctas, 0 inventadas**, 1 parcial, 2 "no sabe" |
+| App | https://asistente-triatlon-921790710609.europe-west1.run.app |
+
+Los veredictos los propuso Claude y **hay que revisarlos entre todos** antes de la exposición.
+
+# Cómo probar todo
+
+## La app publicada
+
+1. Abrid la URL de arriba. **Desactivad la traducción automática de Chrome** (cambia "Sin RAG" por "Pecado RAG").
+2. La primera vez **esperad alrededor de un minuto**: si nadie la ha usado en un rato, Cloud Run la arranca desde cero.
+3. Pulsad las preguntas de ejemplo de la izquierda y escribid otras. Buenas para comprobar:
+   - *"Tomo Sumial (propranolol), ¿está prohibido en triatlón?"* → **no** (pregunta trampa; Gemini sin RAG dice que sí).
+   - *"¿Quién ganó el Ironman de 2025?"* → tiene que decir que **no lo sabe**.
+   - *"¿Me da positivo el Frenadol Descongestivo?"* → dice que la pseudoefedrina está prohibida, pero no da el umbral (limitación conocida).
+4. Marcad **"Comparar con el LLM sin RAG"**: salen las dos respuestas lado a lado.
+5. Abrid **"Fuentes"**: salen los trozos que ha leído, con su cita y su enlace.
+
+## En el Mac
+
+Desde `rag_project/`, con el entorno activado (`source ../.venv/bin/activate`) y Ollama abierto:
+
+```bash
+python src/pipeline.py            # descarga y limpia → corpus.jsonl (~20 s)
+python src/indexar.py             # trozos + embeddings → chroma/ (~1 min)
+python src/rag.py                 # 2 preguntas con qwen, sin RAG y con RAG
+python src/evaluar.py chunking    # el experimento de tamaños de trozo
+python src/evaluar.py             # experimento + comparativa (con qwen, ~3 min)
+streamlit run app.py              # la app en local
+```
+
+## La web
+
+Desde la raíz del repo: `quarto preview` (se abre en el navegador).
+
+# P1 · Miguel: datos, preguntas y conclusiones
+
+Tu parte es **de dónde salen los datos** (fase A), **las preguntas** de la evaluación y **las conclusiones**. Archivos: `src/pipeline.py`, `evaluacion/preguntas.csv`, páginas `01-datos.qmd` y `05-conclusiones.qmd`.
+
+## Las fuentes
+
+| Fuente | Versión | Tipo |
+|---|---|---|
+| Reglamento de competición de World Triathlon | 2026, 212 págs., inglés | PDF |
+| Reglamento de Competiciones de la FETRI | 2026 (Circular 4/26), 138 págs., español | PDF |
+| Lista de sustancias prohibidas de la WADA | 2026, 26 págs., inglés | PDF |
+| CIMA (Agencia Española del Medicamento) | API REST, sin clave | JSON |
+
+Se buscaron en las webs oficiales el 20/11. Son documentos públicos: los PDF **no se suben al repo** (se descargan cada vez); el texto extraído sí, citando siempre la fuente. Mezclar PDF y API es lo que pide la fase A.
+
+## `pipeline.py`, función a función
+
+Se ejecuta con `python src/pipeline.py` y tarda unos 20 segundos.
+
+| Función | Qué hace | Por qué así |
+|---|---|---|
+| `descargar_pdf(pdf)` | Baja el PDF a `data/raw/` con `requests`. Si ya está, no lo vuelve a bajar | Caché. Comprueba que empieza por `%PDF` para no guardar una página de error. Manda una cabecera `User-Agent` de navegador porque la web de la WADA, sin ella, no devuelve el PDF |
+| `extraer_paginas(ruta)` | Con `pypdf`, devuelve `(número de página, texto)` de cada página | Guardamos el número de página para poder **citarlo** |
+| `lineas_repetidas(paginas)` | Busca las líneas que salen en más de la mitad de las páginas | Son cabeceras y pies ("World Triathlon Competition Rules 2026"); repetidas en cada trozo solo meten ruido |
+| `es_ruido(linea, repetidas)` | Dice si una línea es cabecera/pie, **línea de índice** ("5.5. DRAFTING …… 47") o número de página suelto ("35/212") | Las líneas del índice se parecían mucho a las preguntas pero no tenían la respuesta: robaban sitio en la búsqueda |
+| `es_indice(texto)` | Dice si una página es un **índice alfabético** (más de la mitad de las líneas son "Formoterol, 9, 12") | Las últimas 5 páginas de la WADA nombran todas las sustancias y ganaban todas las búsquedas sin decir nada útil |
+| `limpiar(texto, repetidas)` | Quita el ruido, une palabras partidas con guion ("competi-ción") y normaliza espacios | Texto limpio = mejores embeddings |
+| `descargar_cima(principio_activo)` | Pide a la API de CIMA los medicamentos con ese principio activo, **página a página**, y guarda el JSON en `data/raw/cima/` | La API devuelve los resultados por páginas (`totalFilas`, `pagina`, `tamanioPagina`); el paracetamol tiene 421 |
+| `texto_medicamento(m, principio)` | Convierte un medicamento en una frase: nombre, principio activo, forma, **vía**, receta | Es lo que se indexa. La vía importa: el salbutamol inhalado está permitido con límites y en jarabe no |
+| `url_medicamento(m)` | El enlace a la ficha técnica en CIMA | Para citar y comprobar |
+| `lineas_pdfs()` | Para cada PDF: descargar → extraer → limpiar → descartar páginas vacías o de índice → una línea por página | |
+| `lineas_cima()` | Para cada principio activo: descargar → quedarse con los **comercializados y de marca** → una línea por medicamento, sin repetidos | Un medicamento con dos principios activos sale en dos búsquedas: se guarda una vez |
+| `main()` | Junta todo, **comprueba el formato** de cada línea y escribe `corpus.jsonl` | Si el formato se rompe, falla aquí y no más tarde en `indexar.py` |
+
+Ejemplo de línea del corpus:
+
+```json
+{"fuente": "cima", "url": "https://cima.aemps.es/...", "pagina": null,
+ "principio_activo": "salbutamol",
+ "texto": "VENTOLIN 2 mg/5 ml JARABE. Medicamento español. Principio activo:
+           salbutamol. Forma: jarabe. Vía de administración: vía oral. Con receta."}
+```
+
+## Decisiones de CIMA
+
+- **24 principios activos**, agrupados por motivo: broncodilatadores del asma (salbutamol, formoterol…), corticoides, estimulantes y descongestionantes de los antigripales (pseudoefedrina…), un diurético, un betabloqueante (propranolol), analgésicos (tramadol prohibido, codeína no), hormonas, y **tres permitidos** (ibuprofeno, paracetamol, cetirizina) para comprobar que el asistente también sabe decir "no da positivo".
+- **Descartados**: `hidroclorotiazida` (181 combinaciones para la tensión, puro ruido), `efedrina` y `morfina` (CIMA busca por trozo de palabra: "efedrina" ya devuelve la pseudoefedrina).
+- **Solo comercializados y de marca**: de 1.069 quedan **637**. Los genéricos se llaman como su principio activo ("PARACETAMOL CINFA"), así que no hace falta CIMA para ellos. Las marcas ("Frenadol", "Adolonta") son justo lo que el LLM no sabe.
+- El `principio_activo` sale del campo **`vtm`** de CIMA, que trae la combinación completa ("paracetamol + clorfenamina + dextrometorfano + pseudoefedrina").
+
+## Las preguntas (`preguntas.csv`)
+
+Diez preguntas escritas leyendo los PDF, con respuesta exacta y comprobable. Columnas: `id`, `pregunta`, `respuesta_esperada`, `fuente` y `dato_clave`.
+
+- En `fuente`, `+` significa "hacen falta las dos" (CIMA **y** la WADA) y `|` significa "vale cualquiera" (World Triathlon **o** la FETRI, que copia el reglamento en español).
+- `dato_clave` es el texto exacto que tiene que aparecer en los trozos recuperados (por ejemplo `1600 micrograms`). Lo usa el experimento de chunking.
+
+| # | Tema | Fuente |
+|---|---|---|
+| 1 | Penalización por drafting en estándar y sprint (1 min / 30 s) | WT p. 34 o FETRI p. 28 |
+| 2 | Neopreno en grupos de edad, 1500 m (prohibido a 22 ºC) | WT p. 41 o FETRI p. 34 |
+| 3 | Casco desabrochado en transición (no se puede) | WT p. 69 o FETRI p. 56 |
+| 4 | Sanciones por drafting en media distancia (3, sin apelación) | FETRI p. 51 |
+| 5 | Ventolin inhalado: 1600 µg/24 h, 600 µg/8 h | CIMA + WADA p. 9 |
+| 6 | Ventolin jarabe: prohibido (vía oral) | CIMA + WADA p. 9 |
+| 7 | Frenadol Descongestivo: pseudoefedrina, umbral 150 µg/mL | CIMA + WADA p. 16 |
+| 8 | Adolonta: tramadol, prohibido en competición | CIMA + WADA p. 17 |
+| 9 | Sumial: propranolol, **no** prohibido en triatlón (trampa) | CIMA + WADA p. 20 |
+| 10 | Ironman 2025 (no está en el corpus: control) | ninguna |
+
+## Las páginas 1 y 5 de la web
+
+- **Página 1 (Datos)**: fuentes, código de descarga y limpieza (sale el código real con `inspect.getsource`), un antes/después de limpiar una página de índice, CIMA y el resumen del corpus.
+- **Página 5 (Conclusiones)**: qué hemos demostrado con cifras, tabla de limitaciones (con de dónde sale cada una y cómo se mejoraría), mejoras futuras y qué hemos aprendido. Las cifras están escritas a mano: si cambian los veredictos, hay que actualizarlas.
+
+## Preguntas que te puede hacer el profesor
+
+**¿Por qué decís que el pipeline es automático?** Porque `python src/pipeline.py` descarga los 3 PDF y los medicamentos de CIMA, los limpia y genera el corpus sin tocar nada a mano. Si cambian los documentos, se cambia la URL y se vuelve a ejecutar.
+
+**¿Qué problemas de limpieza hubo?** Tres: cabeceras y pies repetidos en todas las páginas, las páginas de índice (con puntos o alfabéticas) que ganaban las búsquedas sin tener respuestas, y palabras partidas con guion al final de línea.
+
+**¿Por qué no bajáis todos los medicamentos de España?** Son más de 20.000. Elegimos 24 principios activos relevantes en el deporte y solo los de marca: basta para las preguntas y se indexa en segundos.
+
+**¿Por qué guardáis el principio activo aparte?** Porque la búsqueda en dos pasos lo necesita: de "Adolonta" saca "tramadol" y busca "tramadol" en la WADA. Si estuviera solo dentro del texto, habría que adivinarlo.
+
+**¿Qué limitaciones tiene el proyecto?** El modelo pequeño lee mal el contexto; los embeddings fallan entre idiomas con palabras sueltas (pseudoefedrina/Pseudoephedrine); 10 preguntas son pocas y los veredictos los pone una persona; Gemini no siempre repite la misma respuesta.
+
+# P2 · Javier: recuperación y evaluación
+
+Tu parte es **cómo se busca** (fase B) y **cómo se demuestra** que funciona (fase C). Archivos: `src/indexar.py`, la función `recuperar()` de `src/rag.py`, `src/evaluar.py`, páginas `02-arquitectura.qmd` y `03-evaluacion.qmd`.
+
+## Embeddings y similitud
+
+Un **embedding** es una lista de números (384 en nuestro modelo) que representa el **significado** de un texto. Textos que dicen lo mismo con palabras distintas dan vectores cercanos: "¿cuánto cuesta la matrícula?" y "el precio de inscripción es 300 €" se parecen aunque no compartan palabras.
+
+Para medir si dos vectores se parecen se usa la **similitud del coseno**: 1 = mismo significado, 0 = nada que ver. Chroma la calcula entre la pregunta y los trozos y devuelve los mejores.
+
+El modelo `multilingual-e5-small`: gratis, en CPU y **multilingüe** (preguntamos en español y la WADA está en inglés). Lee como mucho **512 tokens** por trozo. Se entrenó con el prefijo `passage: ` delante de los documentos y `query: ` delante de las preguntas: sin ellos recupera peor.
+
+## `indexar.py`, función a función
+
+| Función | Qué hace | Por qué así |
+|---|---|---|
+| `crear_embeddings()` | Crea el modelo e5 con los prefijos `passage:`/`query:` y vectores normalizados | `rag.py` usa **esta misma** función: si los vectores salieran de modelos distintos no serían comparables |
+| `cargar_corpus()` | Cada línea de `corpus.jsonl` → un `Document` de LangChain (texto + metadata) | Chroma no admite metadata vacía (`None`), así que la página vacía de CIMA se quita |
+| `trocear(documentos, tamano, solape)` | Parte los documentos con `RecursiveCharacterTextSplitter` | Corta primero por párrafos, luego líneas, luego palabras: intenta no partir frases. Los trozos **heredan la fuente y la página** |
+| `indexar(trozos, coleccion, embeddings)` | Borra la colección y la vuelve a crear en Chroma, con distancia coseno | Si no se borrara, al ejecutar dos veces se duplicarían los trozos |
+| `main()` | Crea las 3 colecciones (300, 800, 1500) e imprime cuántos trozos salen | 4.351 / 1.792 / 1.299 trozos, en ~1 minuto |
+
+El **solape** (100 caracteres) hace que el final de un trozo se repita al principio del siguiente: así un dato no queda partido justo en el corte.
+
+## El experimento de chunking
+
+El tamaño de trozo no se elige a ojo: se mide, como los hiperparámetros del Trabajo 1. Para cada tamaño y cada pregunta, `experimento_chunking()` comprueba si los trozos recuperados contienen **la página correcta** y **el dato exacto** (`dato_clave`).
+
+| Tamaño | Página correcta | Dato exacto | Texto que recibe el LLM |
+|---|---|---|---|
+| 300 | 9/9 | 4/9 | 1.411 caracteres |
+| **800** | 9/9 | **8/9** | 3.117 caracteres |
+| 1500 | 9/9 | 8/9 | 5.527 caracteres |
+
+**Elegimos 800.** Con 300 se encuentra la página pero el trozo corta las tablas y la cifra se queda fuera. Con 1.500 se acierta lo mismo con un 77 % más de texto: más ruido para el LLM y más lento. Además, 1.500 caracteres son ~400 tokens, cerca del límite de 512 de e5.
+
+## `recuperar()`: cómo se busca
+
+La pregunta difícil es la de medicamentos: *"¿Puedo tomar Adolonta?"* necesita un trozo de CIMA (Adolonta = tramadol) y otro de la WADA (tramadol prohibido en competición). Pero **la WADA nunca dice "Adolonta"**, así que una sola búsqueda no encuentra los dos. Por eso `recuperar()` va por pasos:
+
+1. **Búsqueda general**: los 4 trozos más parecidos a la pregunta. Si no es de medicamentos, se devuelven estos.
+2. **¿Nombra un medicamento?** Búsqueda **solo en CIMA** (filtro por metadatos `{"fuente": "cima"}`); se añaden los trozos con relevancia **≥ 0,85**. El umbral está medido: las preguntas de medicamentos tienen un trozo de CIMA con ≥ 0,857 y las demás ≤ 0,836. Hace falta porque en la búsqueda general ganaban los trozos largos de la FETRI (en español, como la pregunta).
+3. Si es de medicamentos, el contexto es **CIMA (2 trozos) + WADA**. Los trozos del reglamento solo metían ruido, y las demás presentaciones del mismo medicamento se repetían.
+4. **Expansión de la consulta**: del trozo de CIMA se saca el `principio_activo` y se busca en la WADA (filtro `{"fuente": "lista_prohibida_wada"}`):
+   - por significado, con el nombre del principio activo (4 trozos);
+   - por **palabra exacta**, con `$contains` de Chroma (2 trozos): "Tramadol" está dentro de una lista larga de narcóticos y el embedding de esa lista no se parece al de una sola palabra.
+5. `sin_repetidos()` quita los trozos que salen en varias búsquedas, conservando el orden.
+
+**Esto es nuestra fase E**: los pasos 2 y 4 son **filtros por metadatos** (buscar solo en una fuente) y la búsqueda por palabra exacta es una búsqueda híbrida mínima. La versión completa sería BM25 + vectorial.
+
+## `evaluar.py`, función a función
+
+| Función | Qué hace |
+|---|---|
+| `fuentes_esperadas(texto)` | Lee la columna `fuente` ("cima + lista_prohibida_wada p.9", "… \| …") y la convierte en la lista de páginas que tienen que salir |
+| `acierta(trozos, alternativas)` | Dice si los trozos recuperados incluyen todas las fuentes de alguna alternativa |
+| `experimento_chunking()` | Para cada tamaño y pregunta: recuperar → ¿página correcta? ¿dato exacto? → `resultados/chunking.csv` y una tabla resumen |
+| `comparar(continuar)` | Para cada pregunta: respuesta **sin RAG** y **con RAG** del mismo modelo → `comparativa.csv` (qwen) o `comparativa_gemini.csv` (si hay clave de Gemini). Guarda después de cada pregunta y con `continuar` sigue donde se quedó (Gemini gratis a veces da error 503 por saturación) |
+
+Los **veredictos** (`correcta`, `parcial`, `inventada`, `no sabe`) se ponen a mano después.
+
+## Resultados de la comparativa
+
+| | qwen sin RAG | qwen con RAG | Gemini sin RAG | Gemini con RAG |
+|---|---|---|---|---|
+| Correcta | 0 | 2 | 3 | **7** |
+| Parcial | 0 | 4 | 2 | 1 |
+| Inventada | 9 | 2 | 4 | **0** |
+| No sabe | 1 | 2 | 1 | 2 |
+
+Qué se ve:
+
+- **Sin RAG, los dos se inventan cosas con seguridad.** qwen: neopreno prohibido "a 28 ºC", Adolonta "es adenosina". Gemini: que el propranolol **está prohibido en triatlón** (falso).
+- **Con RAG, ninguno inventa datos de fuera** y los dos citan la página.
+- **La recuperación es la misma para los dos** (8/9 con el dato exacto); la diferencia está en **leer bien** los trozos. qwen confunde cifras del mismo trozo; Gemini acierta 7, y en 2 es demasiado prudente ("no lo sé" con la respuesta delante).
+
+## La limitación medida
+
+La pregunta del Frenadol no recupera el umbral de 150 µg/mL: "pseudoefedrina" (español) no encuentra "Pseudoephedrine" (inglés); buscando en inglés sí. El modelo pequeño de embeddings pierde precisión **entre idiomas** con palabras sueltas. Se arreglaría con un modelo de embeddings mayor (`multilingual-e5-base`, `bge-m3`) o traduciendo el principio activo antes de buscar.
+
+## Preguntas que te puede hacer el profesor
+
+**¿Qué es un embedding?** Una lista de números que representa el significado de un texto; textos parecidos dan vectores cercanos y se comparan con la similitud del coseno.
+
+**¿Por qué 800 caracteres?** Porque lo medimos: el dato exacto aparece en 8 de 9 preguntas, igual que con 1.500 pero con mucho menos texto; con 300 se cortan las tablas (4 de 9).
+
+**¿Por qué los prefijos `query:` y `passage:`?** Porque e5 se entrenó así; sin ellos recupera peor.
+
+**¿Qué es la expansión de la consulta?** Hacer una segunda búsqueda con información sacada de la primera: de "Adolonta" (CIMA) sacamos "tramadol" y lo buscamos en la WADA.
+
+**¿De dónde sale el 0,85?** De medirlo con nuestras preguntas: las de medicamentos dan ≥ 0,857 y las demás ≤ 0,836.
+
+**¿Cómo sabéis que la mejora se debe al RAG?** Porque comparamos el mismo modelo, con la misma pregunta y `temperature=0`: lo único que cambia son los trozos del contexto.
+
+**¿Hacéis la fase E?** Sí: filtros por metadatos (buscar solo en CIMA o solo en la WADA) y búsqueda por palabra exacta con `$contains`.
+
+# P3 · Alejandro: generación, app y despliegue
+
+Tu parte es **cómo se genera la respuesta** (el prompt y el LLM), **la app** (fase D), **el despliegue** en Google Cloud y **la web**. Archivos: el resto de `src/rag.py`, `app.py`, `Dockerfile`, `arrancar.sh`, `.gcloudignore`, `_quarto.yml`, `index.qmd` y la página `04-app.qmd`.
+
+## El resto de `rag.py`
+
+| Función | Qué hace |
+|---|---|
+| `cargar_base(coleccion)` | Abre la colección de Chroma (`trozos_800`) con el mismo modelo de embeddings que `indexar.py` |
+| `cita(trozo)` | La etiqueta `[reglamento_fetri, p. 28]` o `[cima]` que va delante de cada trozo y que el LLM copia al citar |
+| `modelo_en_uso()` | Devuelve `gemini-3.5-flash-lite` si existe `GEMINI_API_KEY`, y `qwen2.5:3b` si no. La app lo enseña debajo del título |
+| `llamar_llm(prompt)` | Manda el prompt al LLM y devuelve el texto. **Único sitio** que sabe qué LLM se usa |
+| `responder_sin_rag(pregunta)` | Solo la pregunta, sin contexto: la línea base de la comparativa |
+| `responder_con_rag(base, pregunta)` | `recuperar()` → pega los trozos con su cita en el prompt → `llamar_llm()`. Devuelve `(respuesta, trozos)` para que la app enseñe las fuentes |
+
+## El prompt
+
+```
+Eres un asistente para triatletas. Responde en español usando SOLO el contexto
+de abajo (puede estar en inglés).
+- Los trozos [cima] dicen qué principio activo lleva un medicamento español y
+  por qué vía se toma.
+- Los trozos [lista_prohibida_wada] dicen qué sustancias están prohibidas, si
+  solo en competición y con qué límites.
+- Si preguntan por un medicamento: di su principio activo, busca esa sustancia
+  en la lista de la WADA y explica si está prohibida, cuándo, y si depende de
+  la vía o de la dosis.
+- Da las cifras exactas del contexto y cita la fuente entre corchetes después
+  de cada dato, por ejemplo [reglamento_fetri, p. 28].
+- Solo si el contexto no tiene la respuesta, di: "No lo sé con mis fuentes".
+
+Contexto:
+{contexto}
+
+Pregunta: {pregunta}
+```
+
+Por qué así: "**SOLO** el contexto" evita que invente; "cita la fuente" hace la respuesta comprobable; los pasos para medicamentos guían a un modelo pequeño; y la salida "No lo sé con mis fuentes" es lo que hace que en la pregunta de control no se invente nada. Con un prompt más corto, qwen decía "no lo sé" incluso con la respuesta delante.
+
+## `llamar_llm()` por dentro
+
+- **En local (Ollama + qwen)**: `ChatOllama(model="qwen2.5:3b", temperature=0, num_ctx=8192)`. `temperature=0` hace las respuestas repetibles; `num_ctx=8192` amplía lo que lee Ollama, que por defecto **corta el contexto sin avisar**.
+- **En la nube (Gemini)**: un `POST` con `requests` a la API de Google (`…/models/gemini-3.5-flash-lite:generateContent`), sin librerías nuevas.
+  - La **clave va en una cabecera** (`x-goog-api-key`), no en la URL, para que no salga en registros ni en errores.
+  - **Reintentos**: hasta 5 intentos esperando 2, 4, 8 y 16 segundos si Google responde 429 (demasiadas peticiones) o 503 (saturado). En el plan gratuito pasa a menudo.
+  - Gemini puede partir la respuesta en varios trozos (`parts`): se **unen todos**. Al principio solo se leía el primero y algunas respuestas salían cortadas.
+
+## `app.py`
+
+- `st.set_page_config` y el título; debajo, el modelo en uso.
+- `@st.cache_resource def base()`: abre Chroma y carga el modelo de embeddings **una sola vez** para todas las visitas, no en cada pregunta.
+- Barra lateral con 4 preguntas de ejemplo y la casilla "Comparar con el LLM sin RAG".
+- Con la casilla: dos columnas (`st.columns(2)`), sin RAG y con RAG.
+- Debajo, `st.expander("Fuentes")` con cada trozo, su cita y su enlace.
+- `sys.path.insert(0, "src")`: `rag.py` importa `indexar.py` como módulo hermano, así que `src/` tiene que estar en el path.
+
+## El despliegue en Google Cloud Run
+
+**Cloud Run** ejecuta un **contenedor** (una "caja" con Python, las librerías y nuestro código) en los servidores de Google y le da una URL pública. Si nadie la usa, la apaga y no cobra; cuando llega una visita, la arranca.
+
+**`Dockerfile`**, paso a paso:
+
+1. `FROM python:3.12-slim`: parte de un Linux mínimo con Python.
+2. Instala `torch` **para CPU** (la versión normal trae CUDA para GPU, varios GB que no se usan) y las librerías con **las mismas versiones** que el `.venv` del Mac.
+3. Copia `src/`, `app.py` y `corpus.jsonl`.
+4. **Indexa `trozos_800` dentro de la imagen.** Así también queda descargado el modelo de embeddings y cada arranque no descarga ni indexa nada.
+5. `ENV HF_HUB_OFFLINE=1`: que no consulte Hugging Face al arrancar (ahorra ~20 segundos).
+6. `CMD`: ejecuta `arrancar.sh`, que lanza Streamlit en el puerto que da Cloud Run (`$PORT`).
+
+**`.gcloudignore`**: lo que no se sube (PDF, `chroma/`, resultados, páginas de la web).
+
+**El comando que lo publica** (Cloud Build construye la imagen en Google; no hace falta Docker en el Mac):
+
+```bash
+gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \
+  --cpu 2 --memory 4Gi --max-instances 1 --timeout 3600 --session-affinity \
+  --set-secrets GEMINI_API_KEY=gemini-api-key:latest --allow-unauthenticated
+```
+
+| Opción | Por qué |
+|---|---|
+| `--cpu 2 --memory 4Gi` | Con 1 CPU, cargar torch y el modelo de embeddings pasaba del minuto en la primera pregunta |
+| `--max-instances 1` | Como mucho una copia funcionando: limita el coste |
+| `--timeout 3600 --session-affinity` | Streamlit mantiene una conexión abierta (websocket) con cada visitante |
+| `--set-secrets` | La clave de Gemini está en **Secret Manager**; Cloud Run la pone en `GEMINI_API_KEY`. Nunca está en el código ni en el repo |
+| `--allow-unauthenticated` | La app es pública, como pide la fase D |
+
+**El problema que hubo y cómo se diagnosticó**: con 1 CPU la primera pregunta se quedaba "pensando" más de un minuto. Para verlo con datos, se ejecutó la misma imagen como trabajo de Cloud Run midiendo cada paso: importar 5 s, crear los embeddings **26 s** (consultaba Hugging Face por internet), cargar la base 4 s, recuperar 1 s. Arreglo: `HF_HUB_OFFLINE=1` y 2 CPU. Aun así, la **primera** pregunta después de un rato sin uso tarda alrededor de un minuto (arranque en frío); las siguientes, segundos.
+
+## La web de Quarto
+
+- `_quarto.yml` define la web: portada (`index.qmd`) y 5 páginas en `rag_project/`.
+- Las páginas ejecutan Python: el código de cada función sale con `inspect.getsource`, así la web muestra siempre el código real.
+- Se genera con `QUARTO_PYTHON=.venv/bin/python quarto render`; el resultado se congela en `_freeze/`.
+- Se publica desde `master` con `quarto publish gh-pages` y la URL se sube a Loop.
+
+## Preguntas que te puede hacer el profesor
+
+**¿Qué LLM usáis?** En la app publicada, Gemini (`gemini-3.5-flash-lite`) por API; en local, qwen2.5:3b con Ollama. Lo decide `llamar_llm()` según exista o no la clave.
+
+**¿Por qué no Ollama en la nube?** Lo probamos dentro del contenedor: imagen de ~6 GB, 10-30 segundos por respuesta y 4 CPU con 8 GB. Con Gemini la imagen es pequeña y responde en segundos.
+
+**¿Dónde está la clave de la API?** En Secret Manager de Google Cloud. Cloud Run la lee al arrancar; no está en el código ni en GitHub, y en la llamada va en una cabecera, no en la URL.
+
+**¿Por qué tarda la primera pregunta?** Arranque en frío: si nadie usa la app, Cloud Run la apaga, y al volver tiene que arrancar el contenedor y cargar el modelo de embeddings.
+
+**¿Por qué el prompt obliga a citar?** Para que la respuesta se pueda comprobar y para que el modelo se ciña a los trozos; y para que diga "no lo sé" en vez de inventar.
+
+**¿Qué pasa si Google falla?** `llamar_llm()` reintenta hasta 5 veces, esperando cada vez más, cuando responde 429 o 503.
+
+# Glosario
+
+| Término | Qué es |
+|---|---|
+| **Alucinación** | Cuando el LLM se inventa algo con seguridad |
+| **BM25** | Búsqueda clásica por palabras exactas; mezclada con la vectorial es la búsqueda híbrida |
+| **Chunk / trozo** | Fragmento del corpus; es lo que se busca y se le pasa al LLM |
+| **Contenedor** | "Caja" con el sistema, las librerías y el código, que se ejecuta igual en cualquier sitio |
+| **Corpus** | Todo el texto de las fuentes, limpio y con su origen |
+| **Embedding** | Vector de números que representa el significado de un texto |
+| **Expansión de la consulta** | Segunda búsqueda con información sacada de la primera |
+| **k** | Cuántos trozos se recuperan (4) |
+| **Metadata** | Datos de cada trozo: fuente, página, URL, principio activo |
+| **Prompt** | El texto que recibe el LLM: instrucciones + trozos + pregunta |
+| **Secret Manager** | Servicio de Google para guardar claves fuera del código |
+| **Similitud del coseno** | Medida de parecido entre dos vectores (1 = igual, 0 = nada que ver) |
+| **Solape** | Caracteres que se repiten entre un trozo y el siguiente (100) |
+| **Temperatura** | Cuánto improvisa el LLM; con 0 responde casi siempre lo mismo |

@@ -54,6 +54,8 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | Resultado con qwen2.5:3b: sin RAG 0 correctas y 9 inventadas; con RAG 2 correctas, 4 parciales, 2 inventadas y 2 "no sabe" (veredictos propuestos, por revisar) | La recuperación acierta 8/9; el cuello de botella es leer el contexto con un modelo de 3B. Con 3 GB libres no cabe uno local mayor |
 | 20/11 | Ollama con `num_ctx=8192` y `temperature=0` | Sin `num_ctx` Ollama corta el contexto sin avisar; temperatura 0 para que la comparativa se pueda repetir |
 | 24/11 | **Despliegue en Google Cloud Run con Gemini** (`gemini-3.5-flash-lite`) por API: `llamar_llm()` usa Gemini si existe `GEMINI_API_KEY` y Ollama si no. La clave va en Secret Manager | El 21/11 se probó Ollama dentro del contenedor y se descartó (imagen de ~6 GB, 10-30 s por respuesta, más coste). Flash-Lite: plan gratuito, el más rápido y aún respeta `temperature=0`. Detalle en PASOS.md, apartado 8 |
+| 24/11 | **Segunda comparativa con Gemini** (`comparativa_gemini.csv`): sin RAG 3 correctas y 4 inventadas; con RAG 7 correctas y 0 inventadas (veredictos por revisar). `llamar_llm()` reintenta ante 429/5xx y une todas las partes de la respuesta | Mismo modelo que la app publicada; demuestra que con un modelo mayor el RAG acierta mucho más. Los reintentos, porque el plan gratuito da 503 a menudo |
+| 24/11 | **Guía de estudio** `GUIA_ESTUDIO.qmd` → PDF con Quarto + typst, separada por persona | Para que cada uno defienda su parte |
 
 ## Lo que une cada parte (no se cambia sin avisar al resto)
 
@@ -89,7 +91,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 ## Pendiente
 
 - Fecha de entrega real (sin confirmar).
-- Veredictos de la comparativa, revisados por el grupo.
-- Publicar la web y subir la URL a Loop. Opcional: repetir la comparativa con Gemini.
+- Veredictos de las dos comparativas (qwen y Gemini), revisados por el grupo.
+- Publicar la web y subir la URL a Loop.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.

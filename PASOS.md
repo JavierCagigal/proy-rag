@@ -263,3 +263,50 @@ Al terminar imprime la URL (`https://asistente-triatlon-….run.app`). Si la con
   - *Ventolin inhalado*: 1600 µg en 24 h sin pasar de 600 µg en 8 h, y el umbral de 1000 ng/mL, citando la p. 9. Correcta; con qwen era inventada (daba el límite del formoterol).
 - La primera pregunta después de un rato sin uso tarda alrededor de un minuto (arranque en frío); las siguientes, pocos segundos.
 - Para cambiar solo la configuración sin reconstruir la imagen: `gcloud run services update asistente-triatlon --region europe-west1 ...`.
+
+## 9. Web de Quarto (20/11 y 24/11)
+
+Portada y 5 páginas escritas. Se renderizan con `QUARTO_PYTHON=.venv/bin/python quarto render` (hacen falta los PDF en `data/raw/` y la base en `chroma/`: ejecutar antes `pipeline.py` e `indexar.py`); el resultado se congela en `_freeze/`.
+
+| Página | Quién la defiende | Qué cuenta |
+|---|---|---|
+| `index.qmd` | Alejandro | El problema (preguntas de triatleta que un chatbot se inventa), qué es el RAG, las fuentes y los enlaces |
+| 1. Datos | Miguel | Fuentes, descarga, limpieza con un antes/después real, CIMA y el corpus |
+| 2. Arquitectura | Javier | Diagrama, piezas y por qué, embeddings y prefijos, trocear, **experimento de chunking con gráfico**, recuperación en dos pasos y la limitación de la pseudoefedrina |
+| 3. Evaluación | Javier | Las 10 preguntas, gráfico sin RAG / con RAG, tres casos comentados (Adolonta, neopreno, control) y la tabla de veredictos |
+| 4. App | Alejandro | Qué hace la app, el prompt, `llamar_llm()` (qwen en local, Gemini en la nube) y el despliegue |
+| 5. Conclusiones | Miguel | Qué se ha demostrado con cifras, tabla de limitaciones con su origen y su mejora, mejoras futuras y qué hemos aprendido |
+
+- Igual que en el Trabajo 1, el código se enseña con `inspect.getsource`: la web muestra siempre el código real de `src/`.
+- La página 3 lee `comparativa.csv` (si cambian los veredictos, basta con volver a renderizar); la 5 tiene las cifras escritas en el texto: **si cambian los veredictos, hay que corregirlas a mano**.
+
+## 10. Comparativa con Gemini y guía de estudio (24/11)
+
+**Comparativa con Gemini** (`resultados/comparativa_gemini.csv`): las mismas 10 preguntas, sin RAG y con RAG, con `gemini-3.5-flash-lite`. La clave se leyó de Secret Manager al ejecutar (`gcloud secrets versions access`), sin escribirla en ningún sitio.
+
+| | qwen sin RAG | qwen con RAG | Gemini sin RAG | Gemini con RAG |
+|---|---|---|---|---|
+| Correcta | 0 | 2 | 3 | **7** |
+| Parcial | 0 | 4 | 2 | 1 |
+| Inventada | 9 | 2 | 4 | **0** |
+| No sabe | 1 | 2 | 1 | 2 |
+
+- Gemini sin RAG sabe más que qwen pero aún inventa 4, entre ellas que el propranolol está prohibido en triatlón.
+- Con RAG, Gemini no inventa ninguna. En 2 preguntas dice "no lo sé" con la respuesta delante (demasiado prudente) y en la 7 falta el umbral (limitación de los embeddings).
+- **Gemini no es del todo repetible** aunque se le pida `temperature=0`: la pregunta 1 la acertó en una ejecución y en otra dijo "no lo sé".
+- Veredictos propuestos por Claude, con su nota en la columna `nota`: **hay que revisarlos**.
+
+Cambios de código que salieron de aquí:
+- `evaluar.py`: el archivo de resultados depende del modelo (`comparativa.csv` con qwen, `comparativa_gemini.csv` con Gemini); guarda después de cada pregunta, y `python src/evaluar.py continuar` sigue donde se quedó. Hizo falta porque el plan gratuito de Gemini devolvió **503 (saturado)** varias veces a mitad.
+- `rag.py`, `llamar_llm()`: **reintenta** hasta 5 veces (esperando 2, 4, 8 y 16 s) si Google responde 429 o 5xx, y **une todas las partes** de la respuesta. Antes solo leía la primera y algunas respuestas salían cortadas ("No lo", "Según el"). Los dos arreglos afectan también a la app, así que se volvió a desplegar.
+- Web: la página 3 enseña los dos modelos (gráfico doble, casos de Gemini y de qwen, pestañas con todas las respuestas); la 5 tiene las cifras nuevas; la 2 dice claramente que los filtros por metadatos son nuestra **fase E**.
+
+**Guía de estudio**: `GUIA_ESTUDIO.qmd` → `GUIA_ESTUDIO.pdf` (14 páginas), con `quarto render GUIA_ESTUDIO.qmd --to typst` (Quarto trae typst, no hace falta LaTeX). Parte común para los tres y una parte para cada uno (Miguel, Javier, Alejandro) con cada función explicada, sus decisiones y las preguntas que puede hacer el profesor con su respuesta. Si cambia algo, se edita el `.qmd` y se vuelve a generar.
+
+---
+
+## Pendiente
+
+- Revisar entre todos los veredictos de las dos comparativas (qwen y Gemini) y, si cambian, las cifras escritas a mano en la página 5 y en `GUIA_ESTUDIO.qmd`.
+- Publicar la web (`quarto publish gh-pages` desde `master`) y poner su URL en Loop.
+- Fase E completa (opcional): búsqueda híbrida BM25. Ya tenemos filtros por metadatos y `$contains` como búsqueda exacta mínima.
