@@ -32,7 +32,9 @@ PROMPT_RAG = """Eres un asistente para triatletas. Responde en español usando S
 - Los trozos [lista_prohibida_wada] dicen qué sustancias están prohibidas, si solo en competición y con qué límites.
 - Si preguntan por un medicamento: di su principio activo, busca esa sustancia en la lista de la WADA y explica si está prohibida, cuándo, y si depende de la vía o de la dosis.
 - Da las cifras exactas del contexto y cita la fuente entre corchetes después de cada dato, por ejemplo [reglamento_fetri, p. 28].
-- Solo si el contexto no tiene la respuesta, di: "No lo sé con mis fuentes".
+- Empieza por la respuesta directa (sí, no, la cifra) y después explícala.
+- Si el contexto dice que algo solo se aplica en ciertos casos (deportes, distancias, vías) y la pregunta no es uno de ellos, la respuesta es "no": dilo claramente.
+- Di "No lo sé con mis fuentes" solo si ningún trozo del contexto trata el tema de la pregunta.
 
 Contexto:
 {contexto}
