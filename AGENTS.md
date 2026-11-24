@@ -53,7 +53,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 | 20/11 | `recuperar()`: búsqueda general + búsqueda solo en CIMA con umbral 0,85; si es de medicamentos, contexto = CIMA (2) + WADA por significado y por palabra exacta (`$contains`). `pipeline.py` descarta las páginas de índice alfabético | Cada paso arregla un fallo medido; detalle en PASOS.md, apartados 2 y 5 |
 | 20/11 | Resultado con qwen2.5:3b: sin RAG 0 correctas y 9 inventadas; con RAG 2 correctas, 4 parciales, 2 inventadas y 2 "no sabe" (veredictos propuestos, por revisar) | La recuperación acierta 8/9; el cuello de botella es leer el contexto con un modelo de 3B. Con 3 GB libres no cabe uno local mayor |
 | 20/11 | Ollama con `num_ctx=8192` y `temperature=0` | Sin `num_ctx` Ollama corta el contexto sin avisar; temperatura 0 para que la comparativa se pueda repetir |
-| 21/11 | **Despliegue en Google Cloud Run** con Ollama + `qwen2.5:3b` dentro del contenedor (`rag_project/Dockerfile`, `arrancar.sh`), sin API key | El mismo modelo que en la evaluación; lo usan otros compañeros. Pasos y comando en PASOS.md, apartado 8 |
+| 24/11 | **Despliegue en Google Cloud Run con Gemini** (`gemini-3.5-flash-lite`) por API: `llamar_llm()` usa Gemini si existe `GEMINI_API_KEY` y Ollama si no. La clave va en Secret Manager | El 21/11 se probó Ollama dentro del contenedor y se descartó (imagen de ~6 GB, 10-30 s por respuesta, más coste). Flash-Lite: plan gratuito, el más rápido y aún respeta `temperature=0`. Detalle en PASOS.md, apartado 8 |
 
 ## Lo que une cada parte (no se cambia sin avisar al resto)
 
@@ -63,7 +63,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 - `indexar.py` → colecciones de Chroma `trozos_300`, `trozos_800` y `trozos_1500` en `rag_project/chroma/`.
 - `rag.py` → `cargar_base()`, `recuperar(base, pregunta)`, `responder_sin_rag(pregunta)` y `responder_con_rag(base, pregunta) → (respuesta, trozos)`.
   - La app y `evaluar.py` solo usan estas funciones.
-  - `llamar_llm()` es el único sitio que sabe qué LLM se usa.
+  - `llamar_llm()` es el único sitio que sabe qué LLM se usa (qwen en local, Gemini si hay `GEMINI_API_KEY`).
 
 ## API de CIMA (comprobada el 20/11)
 
@@ -89,7 +89,7 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 
 - Fecha de entrega real (sin confirmar).
 - Veredictos de la comparativa, revisados por el grupo.
-- Desplegar en Cloud Run: Javier crea el proyecto de Google Cloud con facturación e instala `gcloud` (PASOS.md, apartado 8).
+- Desplegar en Cloud Run: Javier crea la clave de Gemini y el proyecto de Google Cloud con facturación, e instala `gcloud` (PASOS.md, apartado 8).
 - Las 5 páginas de la web de Quarto.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.

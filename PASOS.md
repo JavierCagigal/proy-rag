@@ -184,36 +184,51 @@ El primer intento (prompt corto, todos los trozos) dio aún menos: 2 correctas, 
 - Caja de texto, 4 preguntas de ejemplo en la barra lateral y una casilla "Comparar con el LLM sin RAG" que pone las dos respuestas en dos columnas.
 - Debajo, un desplegable con las **fuentes**: cada trozo con su cita y el enlace al documento o a la ficha de CIMA.
 - `sys.path.insert(0, "src")`: `rag.py` importa `indexar.py` como módulo hermano, así que la carpeta `src/` tiene que estar en el path. Por eso el editor marca el `import` en rojo, aunque funciona.
-- Probada con `streamlit.testing.v1.AppTest`: arranca sin errores. En local usa el Ollama del Mac; en la nube, el que va dentro del contenedor (apartado 8).
+- Probada con `streamlit.testing.v1.AppTest`: arranca sin errores. En local usa el Ollama del Mac; en la nube, Gemini (apartado 8).
 
-## 8. Despliegue en Google Cloud Run (21/11)
+## 8. Despliegue en Google Cloud Run con Gemini (24/11)
 
-**Decisión**: la app pública usa **Ollama con qwen2.5:3b dentro del propio contenedor**, en Google Cloud Run. Es el mismo modelo que en la evaluación, así que lo que se ve en la app es lo que hemos medido, y no hace falta ninguna API key. Lo usan otros compañeros de clase.
+**Decisión**: la app pública va en **Google Cloud Run** (lo usan otros compañeros) y el LLM es **Gemini por API**, con el modelo `gemini-3.5-flash-lite`. El 21/11 se probó a meter Ollama con qwen dentro del contenedor, pero se descartó: imagen de ~6 GB, respuestas de 10-30 s en CPU y 4 CPU + 8 GB de coste. Con Gemini la imagen es pequeña, responde en pocos segundos y un modelo mayor lee mejor el contexto.
+
+**Por qué `gemini-3.5-flash-lite`** (consultado el 24/11 en la documentación de Google): está en el plan gratuito, Google lo presenta como el más rápido y barato para tareas simples, y todavía respeta `temperature=0` (en Gemini 3.6 y posteriores ese parámetro se ignora, y las respuestas no se podrían repetir).
+
+### Cómo elige el modelo `llamar_llm()`
+
+- Si existe la variable de entorno `GEMINI_API_KEY` → Gemini. Es lo que pasa en Cloud Run.
+- Si no → Ollama con `qwen2.5:3b`. Es lo que pasa en el Mac: la evaluación y las pruebas siguen igual.
+- `modelo_en_uso()` dice cuál se está usando; la app lo enseña debajo del título.
+- La llamada a Gemini es un `POST` con `requests` (ya lo usábamos en `pipeline.py`), así que **no hay dependencias nuevas**. La clave va en la cabecera `x-goog-api-key` y no en la URL, para que no salga en registros ni en mensajes de error.
+- Probado: sin clave contesta qwen; con una clave falsa Google responde "API key not valid", que confirma que la URL y la cabecera son las correctas. Falta probarlo con la clave de verdad.
+
+**Ojo con la comparativa**: `comparativa.csv` está hecha con qwen (el mismo modelo con y sin RAG, como se decidió). La app pública usa Gemini, que es otro modelo. Si da tiempo, se puede repetir la comparativa con Gemini exportando la clave antes de `python src/evaluar.py`.
+
+### Archivos
 
 | Archivo | Qué hace |
 |---|---|
-| `rag_project/Dockerfile` | Construye la imagen: Python 3.12 + el binario de Ollama 0.40.16 (copiado de su imagen oficial) + las librerías con las mismas versiones que el `.venv` + `qwen2.5:3b` descargado + la colección `trozos_800` ya indexada |
-| `rag_project/arrancar.sh` | Al arrancar: lanza Ollama, espera a que responda, carga qwen en memoria y arranca Streamlit en el puerto que da Cloud Run (`$PORT`) |
+| `rag_project/Dockerfile` | Imagen con Python 3.12, las librerías con las mismas versiones que el `.venv` y la colección `trozos_800` **ya indexada** (también deja dentro el modelo de embeddings). Así cada arranque no tiene que descargar ni indexar nada |
+| `rag_project/arrancar.sh` | Arranca Streamlit en el puerto que da Cloud Run (`$PORT`) |
 | `rag_project/.gcloudignore` | Lo que no se sube a Cloud Build (PDF, `chroma/`, resultados, páginas de la web) |
 
-Por qué así:
-- **Todo se prepara al construir la imagen**, no al arrancar: el modelo (1,9 GB), el modelo de embeddings y la base de Chroma ya van dentro. Si se hiciera al arrancar, cada arranque en frío tardaría minutos.
-- **`torch` para CPU**: la versión normal trae CUDA (varios GB) y Cloud Run, sin GPU, no lo usa.
-- **Solo `trozos_800`**: es la colección que gana el experimento y la única que usa la app.
-- **`corpus.jsonl` ya está en el repo**, así que el contenedor no descarga los PDF ni llama a CIMA: se indexa directamente.
-- **Limitación**: en CPU qwen tarda unos 10-30 segundos por respuesta, y si nadie usa la app, Cloud Run la apaga; la primera visita después tarda más (arranque en frío).
+- **`torch` para CPU**: la versión normal trae CUDA (varios GB) y Cloud Run no tiene GPU.
+- **`corpus.jsonl` ya está en el repo**: el contenedor no descarga los PDF ni llama a CIMA, solo indexa.
 
 ### Lo que tiene que hacer Javier (una vez)
 
-La cuenta, la facturación y el inicio de sesión no los puede hacer la IA:
+La cuenta, la facturación, la clave y el inicio de sesión no los puede hacer la IA:
 
-1. Crear un proyecto en https://console.cloud.google.com y **activar la facturación** (Cloud Run la exige aunque se quede dentro del nivel gratuito). Recomendado: una **alerta de presupuesto** de pocos euros en *Facturación → Presupuestos*.
-2. Instalar la CLI: `brew install --cask google-cloud-sdk`.
-3. Iniciar sesión y elegir el proyecto:
+1. Crear la clave de Gemini en https://aistudio.google.com → *Get API key*. No la pegues en el chat ni en el código.
+2. Crear un proyecto en https://console.cloud.google.com y **activar la facturación** (Cloud Run la exige aunque se quede en el nivel gratuito). Recomendado: una **alerta de presupuesto** de pocos euros en *Facturación → Presupuestos*.
+3. Instalar la CLI e iniciar sesión:
    ```bash
+   brew install --cask google-cloud-sdk
    gcloud auth login
    gcloud config set project ID_DEL_PROYECTO
-   gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+   gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
+   ```
+4. Guardar la clave en **Secret Manager** (te la pide por teclado; no queda en el historial):
+   ```bash
+   read -s CLAVE && printf '%s' "$CLAVE" | gcloud secrets create gemini-api-key --data-file=- && unset CLAVE
    ```
 
 ### Desplegar (cada vez que cambie la app)
@@ -222,19 +237,20 @@ Desde la raíz del repo:
 
 ```bash
 gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \
-  --cpu 4 --memory 8Gi --max-instances 1 --timeout 3600 --session-affinity \
-  --allow-unauthenticated
+  --cpu 1 --memory 2Gi --max-instances 1 --timeout 3600 --session-affinity \
+  --set-secrets GEMINI_API_KEY=gemini-api-key:latest --allow-unauthenticated
 ```
 
 - `--source rag_project`: Cloud Build construye la imagen con el `Dockerfile`; no hace falta Docker en el Mac.
-- `--cpu 4 --memory 8Gi`: qwen necesita unos 2-3 GB y los embeddings otro más; con menos CPU las respuestas tardan más.
+- `--cpu 1 --memory 2Gi`: el LLM ya no corre aquí; solo el modelo de embeddings (pequeño) y Chroma.
 - `--max-instances 1`: como mucho una copia funcionando, para que el coste no se dispare.
 - `--timeout 3600 --session-affinity`: Streamlit mantiene una conexión abierta (websocket) con cada visitante.
+- `--set-secrets`: Cloud Run lee la clave de Secret Manager y la pone en `GEMINI_API_KEY`. Si dice que la cuenta de servicio no tiene permiso, darle el rol *Secret Manager Secret Accessor* (el propio error dice cuál es la cuenta).
 - `--allow-unauthenticated`: la app es pública, como pide la fase D.
 
-Al terminar, el comando imprime la URL (`https://asistente-triatlon-….run.app`). Si la construcción falla por tiempo, subir el límite con `gcloud config set builds/timeout 1800` y repetir.
+Al terminar imprime la URL (`https://asistente-triatlon-….run.app`). Si la construcción falla por tiempo: `gcloud config set builds/timeout 1800` y repetir.
 
-**Coste aproximado (sin comprobar, mirar la página de precios)**: Cloud Run cobra por CPU y memoria mientras atiende visitas y tiene un nivel gratuito mensual; con 4 CPU y 8 GB da para unas horas de uso al mes. La imagen (~6 GB) se guarda en Artifact Registry, que cobra poco por GB y mes.
+**Coste (sin comprobar, mirar la página de precios)**: Cloud Run tiene un nivel gratuito mensual y con 1 CPU y 2 GB da para bastantes horas de uso; Gemini 3.5 Flash-Lite es gratis en el plan gratuito, con límites de peticiones por minuto.
 
 ## 9. Web de Quarto (20/11)
 
@@ -245,7 +261,7 @@ Al terminar, el comando imprime la URL (`https://asistente-triatlon-….run.app`
 
 ## Pendiente
 
-- **Desplegar en Cloud Run** (apartado 8): Javier crea el proyecto con facturación, instala `gcloud` e inicia sesión; después se lanza el comando.
+- **Desplegar en Cloud Run** (apartado 8): Javier crea la clave de Gemini y el proyecto con facturación, instala `gcloud` e inicia sesión; después se lanza el comando.
 - Revisar los veredictos de la comparativa entre todos.
 - Páginas 02, 03, 04, 05 y portada de la web.
 - Fase E (opcional): búsqueda híbrida BM25. Ya usamos `$contains` como búsqueda exacta mínima.
