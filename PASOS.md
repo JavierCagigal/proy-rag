@@ -266,7 +266,7 @@ Portada y 5 páginas escritas. Se renderizan con `QUARTO_PYTHON=.venv/bin/python
 | 5. Conclusiones | Miguel | Qué se ha demostrado con cifras, tabla de limitaciones con su origen y su mejora, mejoras futuras y qué hemos aprendido |
 
 - Igual que en el Trabajo 1, el código se enseña con `inspect.getsource`: la web muestra siempre el código real de `src/`.
-- Las páginas 3 y 5 leen `comparativa.csv`: **si cambian los veredictos, basta con volver a renderizar**.
+- La página 3 lee `comparativa.csv` (si cambian los veredictos, basta con volver a renderizar); la 5 tiene las cifras escritas en el texto: **si cambian los veredictos, hay que corregirlas a mano**.
 - La URL de la app pone "pendiente de desplegar" en la portada y en la página 4: cambiarla cuando esté.
 
 ---
