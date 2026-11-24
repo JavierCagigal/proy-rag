@@ -4,8 +4,8 @@ title: "5. Conclusiones"
 
 ## Qué hemos demostrado
 
-- **Sin RAG, un LLM pequeño se inventa casi todo lo concreto.** De 10 preguntas, `qwen2.5:3b` se inventó 9: temperaturas, sanciones, qué lleva cada medicamento e incluso campeones que no existen. Y lo hace con seguridad, sin avisar.
-- **Con RAG deja de inventar datos de fuera**: 2 respuestas correctas, 4 parciales, 2 incorrectas y 2 "no lo sé", siempre con la fuente citada. En la pregunta cuya respuesta no está en el corpus, dice que no lo sabe.
+- **Sin RAG, los LLM se inventan lo concreto, y con seguridad.** De 10 preguntas, `qwen2.5:3b` se inventó 9; `gemini-3.5-flash-lite`, mucho mayor, se inventó 4, entre ellas que el propranolol está prohibido en triatlón.
+- **Con RAG dejan de inventar.** Gemini pasa de 3 a **7 respuestas correctas y 0 inventadas**, siempre citando la fuente y la página. Con qwen, 2 correctas y 4 parciales: el modelo pequeño lee peor el contexto. En la pregunta cuya respuesta no está en el corpus, los dos dicen que no lo saben.
 - **La recuperación funciona**: en 8 de 9 preguntas los trozos que llegan al LLM contienen el dato exacto.
 - **El tamaño de trozo importa y se puede medir**: con 300 caracteres el dato aparece en 4 de 9 preguntas; con 800, en 8 con la mitad de texto que con 1.500.
 - **Un RAG se actualiza sin reentrenar.** Cuando salgan el reglamento o la lista de la WADA de 2027, basta con cambiar la URL y volver a ejecutar `pipeline.py` e `indexar.py`.
@@ -14,11 +14,11 @@ title: "5. Conclusiones"
 
 | Limitación | De dónde sale | Cómo se mejoraría |
 |---|---|---|
-| El modelo de 3B **lee mal el contexto**: confunde cifras del mismo trozo o dice "no lo sé" con la respuesta delante | Comparativa (página 3) | Un modelo mayor, como el Gemini de la app publicada |
+| El modelo de 3B **lee mal el contexto**: confunde cifras del mismo trozo. Gemini lo lee bien, pero a veces es demasiado prudente y dice "no lo sé" con la respuesta delante | Comparativa (página 3) | Con Gemini ya pasa de 2 a 7 correctas. Ajustar el prompt para que sea menos prudente |
 | "pseudoefedrina" no encuentra "Pseudoephedrine": el modelo de embeddings pierde precisión **entre idiomas** | Experimento de chunking (página 2) | Embeddings mayores (`multilingual-e5-base`, `bge-m3`) o traducir el principio activo antes de buscar |
 | Las preguntas en español tienden a traer el reglamento de la **FETRI** (en español) antes que el de World Triathlon | Experimento de chunking | Filtros por metadatos ("según World Triathlon…") |
 | **10 preguntas** son una muestra pequeña, y los veredictos los pone una persona | Diseño de la evaluación | Más preguntas y que dos personas pongan el veredicto por separado |
-| La comparativa usa qwen y la app publicada usa Gemini | Decisión de despliegue (página 4) | Repetir la comparativa con Gemini |
+| Gemini no da siempre la misma respuesta aunque se le pida `temperature=0` (la pregunta 1 la acertó en una ejecución y en otra dijo "no lo sé") | Comparativa con Gemini | Repetir cada pregunta varias veces y contar la mayoría |
 | Solo 24 principios activos y 637 medicamentos de CIMA | Decisión de diseño (página 1) | Ampliar la lista o buscar en CIMA en el momento de la pregunta |
 
 ## Mejoras futuras
@@ -31,4 +31,4 @@ title: "5. Conclusiones"
 
 - Un RAG se mejora **midiendo**: cada ajuste de `recuperar()` salió de un fallo que el experimento hizo visible, no de una intuición.
 - **Limpiar los datos** pesa tanto como el modelo: las páginas de índice de los PDF ganaban todas las búsquedas sin contener ninguna respuesta.
-- Un RAG no hace inteligente a un modelo pequeño: le da los datos, pero **leerlos bien sigue dependiendo del LLM**.
+- Un RAG no hace inteligente a un modelo pequeño: le da los datos, pero **leerlos bien sigue dependiendo del LLM**. Con la misma recuperación, qwen acierta 2 y Gemini 7.

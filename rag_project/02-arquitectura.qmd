@@ -116,6 +116,8 @@ Cada paso arregla un fallo que encontró el experimento:
 2. **Expansión de la consulta.** Del trozo de CIMA sale el `principio_activo` y se busca con él en la WADA.
 3. **Palabra exacta** (`$contains`). "Tramadol" está dentro de una lista larga de narcóticos, y el embedding de esa lista no se parece al de una sola palabra. Buscar el texto exacto lo encuentra. Es una búsqueda híbrida mínima: la fase E completa sería BM25.
 
+**Esta es nuestra fase E (extra).** Los pasos 1 y 2 usan **filtros por metadatos**: cada trozo guarda su fuente, y le pedimos a Chroma que busque solo en CIMA (`{"fuente": "cima"}`) o solo en la WADA (`{"fuente": "lista_prohibida_wada"}`). El paso 3 añade una búsqueda por palabra exacta a la vectorial.
+
 Estos son los trozos que llegan al LLM con la pregunta de Adolonta:
 
 ```{python}
