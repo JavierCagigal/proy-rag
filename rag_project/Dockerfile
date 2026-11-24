@@ -24,6 +24,10 @@ COPY data/processed/corpus.jsonl data/processed/corpus.jsonl
 RUN python -c "import sys; sys.path.insert(0, 'src'); import indexar as i; \
 i.indexar(i.trocear(i.cargar_corpus(), 800, i.SOLAPE), 'trozos_800', i.crear_embeddings())"
 
+# El modelo de embeddings ya está dentro de la imagen: sin esto, cada arranque consulta Hugging Face
+# por internet y tarda unos 20 segundos más (medido en Cloud Run el 24/11).
+ENV HF_HUB_OFFLINE=1
+
 COPY arrancar.sh .
 ENV PORT=8080
 CMD ["sh", "arrancar.sh"]

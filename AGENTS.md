@@ -84,12 +84,12 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 - En `test`: la guía, los esqueletos, el tema y este archivo (PR #1, #2 y #3). El PR #4 (reparto) está abierto.
 - Rama `datos/pipeline` (encima del PR #4): fases A, B y C hechas y probadas en el Mac de Javier. `pipeline.py`, `indexar.py`, `rag.py`, `evaluar.py`, `app.py`, `preguntas.csv` (10 preguntas), `corpus.jsonl`, `resultados/chunking.csv` y `comparativa.csv`. El diario está en `PASOS.md`.
 - En el Mac de Javier: `.venv` con Python 3.14 y todo `requirements.txt`. Ollama con `qwen2.5:3b` funcionando.
+- **App desplegada (24/11)**: https://asistente-triatlon-921790710609.europe-west1.run.app (Cloud Run, proyecto `asistente-triatlon`, 2 CPU / 4 GB, Gemini con la clave en Secret Manager). Web completa en la rama `web/paginas` (PR #6).
 
 ## Pendiente
 
 - Fecha de entrega real (sin confirmar).
 - Veredictos de la comparativa, revisados por el grupo.
-- Desplegar en Cloud Run: Javier crea la clave de Gemini y el proyecto de Google Cloud con facturación, e instala `gcloud` (PASOS.md, apartado 8).
-- Web: las 5 páginas están escritas (rama `web/paginas`); falta la URL de la app y publicar.
+- Publicar la web y subir la URL a Loop. Opcional: repetir la comparativa con Gemini.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.

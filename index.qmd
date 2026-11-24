@@ -20,7 +20,7 @@ Sus fuentes:
 
 ## Enlaces
 
-- **App:** *pendiente de desplegar.*
+- **App:** [asistente-triatlon-921790710609.europe-west1.run.app](https://asistente-triatlon-921790710609.europe-west1.run.app). La primera pregunta tras un rato sin uso tarda alrededor de un minuto, porque Cloud Run arranca la app desde cero.
 - **Código:** [github.com/JavierCagigal/proy-rag](https://github.com/JavierCagigal/proy-rag)
 
 ## Las páginas

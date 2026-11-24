@@ -237,12 +237,12 @@ Desde la raíz del repo:
 
 ```bash
 gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \
-  --cpu 1 --memory 2Gi --max-instances 1 --timeout 3600 --session-affinity \
+  --cpu 2 --memory 4Gi --max-instances 1 --timeout 3600 --session-affinity \
   --set-secrets GEMINI_API_KEY=gemini-api-key:latest --allow-unauthenticated
 ```
 
 - `--source rag_project`: Cloud Build construye la imagen con el `Dockerfile`; no hace falta Docker en el Mac.
-- `--cpu 1 --memory 2Gi`: el LLM ya no corre aquí; solo el modelo de embeddings (pequeño) y Chroma.
+- `--cpu 2 --memory 4Gi`: el LLM ya no corre aquí, pero cargar torch y el modelo de embeddings con 1 CPU pasaba del minuto en la primera pregunta.
 - `--max-instances 1`: como mucho una copia funcionando, para que el coste no se dispare.
 - `--timeout 3600 --session-affinity`: Streamlit mantiene una conexión abierta (websocket) con cada visitante.
 - `--set-secrets`: Cloud Run lee la clave de Secret Manager y la pone en `GEMINI_API_KEY`. Si dice que la cuenta de servicio no tiene permiso, darle el rol *Secret Manager Secret Accessor* (el propio error dice cuál es la cuenta).
@@ -252,28 +252,14 @@ Al terminar imprime la URL (`https://asistente-triatlon-….run.app`). Si la con
 
 **Coste (sin comprobar, mirar la página de precios)**: Cloud Run tiene un nivel gratuito mensual y con 1 CPU y 2 GB da para bastantes horas de uso; Gemini 3.5 Flash-Lite es gratis en el plan gratuito, con límites de peticiones por minuto.
 
-## 9. Web de Quarto (20/11 y 24/11)
+### Desplegada el 24/11
 
-Portada y 5 páginas escritas. Se renderizan con `QUARTO_PYTHON=.venv/bin/python quarto render` (hacen falta los PDF en `data/raw/` y la base en `chroma/`: ejecutar antes `pipeline.py` e `indexar.py`); el resultado se congela en `_freeze/`.
-
-| Página | Quién la defiende | Qué cuenta |
-|---|---|---|
-| `index.qmd` | Alejandro | El problema (preguntas de triatleta que un chatbot se inventa), qué es el RAG, las fuentes y los enlaces |
-| 1. Datos | Miguel | Fuentes, descarga, limpieza con un antes/después real, CIMA y el corpus |
-| 2. Arquitectura | Javier | Diagrama, piezas y por qué, embeddings y prefijos, trocear, **experimento de chunking con gráfico**, recuperación en dos pasos y la limitación de la pseudoefedrina |
-| 3. Evaluación | Javier | Las 10 preguntas, gráfico sin RAG / con RAG, tres casos comentados (Adolonta, neopreno, control) y la tabla de veredictos |
-| 4. App | Alejandro | Qué hace la app, el prompt, `llamar_llm()` (qwen en local, Gemini en la nube) y el despliegue |
-| 5. Conclusiones | Miguel | Qué se ha demostrado con cifras, tabla de limitaciones con su origen y su mejora, mejoras futuras y qué hemos aprendido |
-
-- Igual que en el Trabajo 1, el código se enseña con `inspect.getsource`: la web muestra siempre el código real de `src/`.
-- La página 3 lee `comparativa.csv` (si cambian los veredictos, basta con volver a renderizar); la 5 tiene las cifras escritas en el texto: **si cambian los veredictos, hay que corregirlas a mano**.
-- La URL de la app pone "pendiente de desplegar" en la portada y en la página 4: cambiarla cuando esté.
-
----
-
-## Pendiente
-
-- **Desplegar en Cloud Run** (apartado 8): Javier crea la clave de Gemini y el proyecto con facturación, instala `gcloud` e inicia sesión; después se lanza el comando.
-- Revisar los veredictos de la comparativa entre todos.
-- Poner la URL de la app en `index.qmd` y `04-app.qmd` cuando esté desplegada, y publicar la web (`quarto publish gh-pages` desde `master`).
-- Fase E (opcional): búsqueda híbrida BM25. Ya usamos `$contains` como búsqueda exacta mínima.
+- **URL**: https://asistente-triatlon-921790710609.europe-west1.run.app
+- Proyecto `asistente-triatlon`, región `europe-west1`, revisión con 2 CPU, 4 GB, CPU solo durante peticiones, como mucho 1 instancia.
+- La clave está en Secret Manager (`gemini-api-key`); la cuenta de servicio de Cloud Run (`…-compute@developer.gserviceaccount.com`) tiene permiso para leer **solo ese secreto**.
+- **Primer problema y su diagnóstico**: con 1 CPU la primera pregunta se quedaba "pensando" más de un minuto. Para verlo con datos se ejecutó la misma imagen como trabajo de Cloud Run midiendo cada paso: importar 5 s, crear los embeddings 26 s (casi todo, consultando Hugging Face por internet aunque el modelo ya estaba en la imagen), cargar la base 4 s, `recuperar()` 1 s. Arreglo: `HF_HUB_OFFLINE=1` (ya en el `Dockerfile`) y 2 CPU.
+- **Probada en el navegador**:
+  - *Adolonta*: "El principio activo de Adolonta es el tramadol [cima]. … narcóticos (S7) [lista_prohibida_wada, p. 17]. Está prohibido en competición." Correcta; con qwen era parcial.
+  - *Ventolin inhalado*: 1600 µg en 24 h sin pasar de 600 µg en 8 h, y el umbral de 1000 ng/mL, citando la p. 9. Correcta; con qwen era inventada (daba el límite del formoterol).
+- La primera pregunta después de un rato sin uso tarda alrededor de un minuto (arranque en frío); las siguientes, pocos segundos.
+- Para cambiar solo la configuración sin reconstruir la imagen: `gcloud run services update asistente-triatlon --region europe-west1 ...`.
