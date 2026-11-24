@@ -2,4 +2,33 @@
 title: "5. Conclusiones"
 ---
 
-<!-- P1 (Miguel), con los resultados de todos. Qué hemos demostrado (resumen de la comparativa de 03 con cifras), limitaciones, mejoras futuras y qué hemos aprendido. -->
+## Qué hemos demostrado
+
+- **Sin RAG, un LLM pequeño se inventa casi todo lo concreto.** De 10 preguntas, `qwen2.5:3b` se inventó 9: temperaturas, sanciones, qué lleva cada medicamento e incluso campeones que no existen. Y lo hace con seguridad, sin avisar.
+- **Con RAG deja de inventar datos de fuera**: 2 respuestas correctas, 4 parciales, 2 incorrectas y 2 "no lo sé", siempre con la fuente citada. En la pregunta cuya respuesta no está en el corpus, dice que no lo sabe.
+- **La recuperación funciona**: en 8 de 9 preguntas los trozos que llegan al LLM contienen el dato exacto.
+- **El tamaño de trozo importa y se puede medir**: con 300 caracteres el dato aparece en 4 de 9 preguntas; con 800, en 8 con la mitad de texto que con 1.500.
+- **Un RAG se actualiza sin reentrenar.** Cuando salgan el reglamento o la lista de la WADA de 2027, basta con cambiar la URL y volver a ejecutar `pipeline.py` e `indexar.py`.
+
+## Limitaciones
+
+| Limitación | De dónde sale | Cómo se mejoraría |
+|---|---|---|
+| El modelo de 3B **lee mal el contexto**: confunde cifras del mismo trozo o dice "no lo sé" con la respuesta delante | Comparativa (página 3) | Un modelo mayor, como el Gemini de la app publicada |
+| "pseudoefedrina" no encuentra "Pseudoephedrine": el modelo de embeddings pierde precisión **entre idiomas** | Experimento de chunking (página 2) | Embeddings mayores (`multilingual-e5-base`, `bge-m3`) o traducir el principio activo antes de buscar |
+| Las preguntas en español tienden a traer el reglamento de la **FETRI** (en español) antes que el de World Triathlon | Experimento de chunking | Filtros por metadatos ("según World Triathlon…") |
+| **10 preguntas** son una muestra pequeña, y los veredictos los pone una persona | Diseño de la evaluación | Más preguntas y que dos personas pongan el veredicto por separado |
+| La comparativa usa qwen y la app publicada usa Gemini | Decisión de despliegue (página 4) | Repetir la comparativa con Gemini |
+| Solo 24 principios activos y 637 medicamentos de CIMA | Decisión de diseño (página 1) | Ampliar la lista o buscar en CIMA en el momento de la pregunta |
+
+## Mejoras futuras
+
+- **Búsqueda híbrida (BM25 + vectorial)**: los nombres de medicamentos y sustancias son palabras exactas. Nuestro `$contains` ya es una versión mínima y fue lo que encontró el tramadol.
+- **Reranking**: recuperar 20 trozos y que un modelo más preciso elija los 4 mejores.
+- **Conectarlo con datos propios**, por ejemplo los entrenamientos de un reloj deportivo, para responder sobre cada deportista.
+
+## Qué hemos aprendido
+
+- Un RAG se mejora **midiendo**: cada ajuste de `recuperar()` salió de un fallo que el experimento hizo visible, no de una intuición.
+- **Limpiar los datos** pesa tanto como el modelo: las páginas de índice de los PDF ganaban todas las búsquedas sin contener ninguna respuesta.
+- Un RAG no hace inteligente a un modelo pequeño: le da los datos, pero **leerlos bien sigue dependiendo del LLM**.

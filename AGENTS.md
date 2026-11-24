@@ -90,6 +90,6 @@ Léelo antes de hacer nada en este repo. Aquí están las reglas y las decisione
 - Fecha de entrega real (sin confirmar).
 - Veredictos de la comparativa, revisados por el grupo.
 - Desplegar en Cloud Run: Javier crea la clave de Gemini y el proyecto de Google Cloud con facturación, e instala `gcloud` (PASOS.md, apartado 8).
-- Las 5 páginas de la web de Quarto.
+- Web: las 5 páginas están escritas (rama `web/paginas`); falta la URL de la app y publicar.
 - Si el profesor exige que funcione sin wifi.
 - Invitar a Alejandro y Miguel como colaboradores del repo.

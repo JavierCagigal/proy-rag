@@ -252,10 +252,22 @@ Al terminar imprime la URL (`https://asistente-triatlon-….run.app`). Si la con
 
 **Coste (sin comprobar, mirar la página de precios)**: Cloud Run tiene un nivel gratuito mensual y con 1 CPU y 2 GB da para bastantes horas de uso; Gemini 3.5 Flash-Lite es gratis en el plan gratuito, con límites de peticiones por minuto.
 
-## 9. Web de Quarto (20/11)
+## 9. Web de Quarto (20/11 y 24/11)
 
-- `01-datos.qmd` escrita: fuentes, descarga, limpieza (con un antes/después real), CIMA y resumen del corpus. El código de cada función se enseña con `inspect.getsource`, como en el Trabajo 1, así que la web siempre muestra el código real.
-- Se renderiza con `QUARTO_PYTHON=.venv/bin/python quarto render`. Necesita los PDF en `data/raw/` (ejecutar antes `pipeline.py`); el resultado se congela en `_freeze/`.
+Portada y 5 páginas escritas. Se renderizan con `QUARTO_PYTHON=.venv/bin/python quarto render` (hacen falta los PDF en `data/raw/` y la base en `chroma/`: ejecutar antes `pipeline.py` e `indexar.py`); el resultado se congela en `_freeze/`.
+
+| Página | Quién la defiende | Qué cuenta |
+|---|---|---|
+| `index.qmd` | Alejandro | El problema (preguntas de triatleta que un chatbot se inventa), qué es el RAG, las fuentes y los enlaces |
+| 1. Datos | Miguel | Fuentes, descarga, limpieza con un antes/después real, CIMA y el corpus |
+| 2. Arquitectura | Javier | Diagrama, piezas y por qué, embeddings y prefijos, trocear, **experimento de chunking con gráfico**, recuperación en dos pasos y la limitación de la pseudoefedrina |
+| 3. Evaluación | Javier | Las 10 preguntas, gráfico sin RAG / con RAG, tres casos comentados (Adolonta, neopreno, control) y la tabla de veredictos |
+| 4. App | Alejandro | Qué hace la app, el prompt, `llamar_llm()` (qwen en local, Gemini en la nube) y el despliegue |
+| 5. Conclusiones | Miguel | Qué se ha demostrado con cifras, tabla de limitaciones con su origen y su mejora, mejoras futuras y qué hemos aprendido |
+
+- Igual que en el Trabajo 1, el código se enseña con `inspect.getsource`: la web muestra siempre el código real de `src/`.
+- Las páginas 3 y 5 leen `comparativa.csv`: **si cambian los veredictos, basta con volver a renderizar**.
+- La URL de la app pone "pendiente de desplegar" en la portada y en la página 4: cambiarla cuando esté.
 
 ---
 
@@ -263,5 +275,5 @@ Al terminar imprime la URL (`https://asistente-triatlon-….run.app`). Si la con
 
 - **Desplegar en Cloud Run** (apartado 8): Javier crea la clave de Gemini y el proyecto con facturación, instala `gcloud` e inicia sesión; después se lanza el comando.
 - Revisar los veredictos de la comparativa entre todos.
-- Páginas 02, 03, 04, 05 y portada de la web.
+- Poner la URL de la app en `index.qmd` y `04-app.qmd` cuando esté desplegada, y publicar la web (`quarto publish gh-pages` desde `master`).
 - Fase E (opcional): búsqueda híbrida BM25. Ya usamos `$contains` como búsqueda exacta mínima.

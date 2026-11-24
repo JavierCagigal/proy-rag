@@ -2,4 +2,88 @@
 title: "3. Sin RAG frente a con RAG"
 ---
 
-<!-- P2. Las preguntas, tabla de resultados/comparativa.csv con los veredictos, dos o tres casos comentados (lo que se inventa el LLM y lo que responde con RAG citando el trozo) y el recuento final. -->
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+
+preguntas = pd.read_csv("evaluacion/preguntas.csv")
+comparativa = pd.read_csv("resultados/comparativa.csv")
+
+
+def caso(id_pregunta):
+    """Una pregunta con la respuesta esperada y las dos respuestas, como cita."""
+    f = comparativa.set_index("id").loc[id_pregunta]
+    return Markdown(
+        f"**Pregunta {id_pregunta}.** {f.pregunta}\n\n"
+        f"*Respuesta correcta:* {f.respuesta_esperada}\n\n"
+        f"> **Sin RAG** ({f.veredicto_sin_rag}): {f.respuesta_sin_rag[:600]}\n\n"
+        f"> **Con RAG** ({f.veredicto_con_rag}): {f.respuesta_con_rag[:600]}\n\n"
+        f"*Por qué:* {f.nota}"
+    )
+```
+
+Aquí se demuestra lo que pide la fase C: que el RAG responde mejor que el mismo LLM sin contexto. Le hacemos **la misma pregunta al mismo modelo** (`qwen2.5:3b`, con `temperature=0`) de dos formas: solo la pregunta, y la pregunta con los trozos recuperados. Como lo único que cambia es el contexto, la diferencia se debe al RAG.
+
+## Las preguntas
+
+Diez preguntas de nicho con una respuesta exacta en nuestras fuentes, más difíciles de acertar de memoria cuanto más concretas. La última es de control: su respuesta **no** está en el corpus, para comprobar que con RAG dice que no lo sabe en vez de inventar.
+
+```{python}
+#| echo: false
+preguntas[["id", "pregunta", "fuente"]].style.hide(axis="index")
+```
+
+En `fuente`, `+` significa que hacen falta las dos (CIMA **y** la WADA) y `|` que vale cualquiera (la FETRI copia en español el reglamento de World Triathlon).
+
+## Resultado
+
+Cada respuesta tiene un veredicto: `correcta`, `parcial`, `inventada` (da un dato falso) o `no sabe`.
+
+```{python}
+#| echo: false
+orden = ["correcta", "parcial", "inventada", "no sabe"]
+tabla = pd.DataFrame({
+    "Sin RAG": comparativa.veredicto_sin_rag.value_counts(),
+    "Con RAG": comparativa.veredicto_con_rag.value_counts(),
+}).reindex(orden).fillna(0).astype(int)
+
+fig, eje = plt.subplots(figsize=(7, 3))
+tabla.plot.bar(ax=eje, color=["#c8440c", "#0a6a93"], rot=0)
+eje.set(ylabel="preguntas (de 10)", xlabel="")
+eje.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+plt.show()
+tabla
+```
+
+- **Sin RAG, el modelo se inventa 9 de 10**, y con total seguridad: que el neopreno se prohíbe "a partir de 28 ºC", que Adolonta "es adenosina", que Frenadol "lleva desmopánico", e incluso ganadores de Ironman que no existen.
+- **Con RAG deja de inventar datos de fuera**: todo lo que dice sale de los trozos, cita la página y, en la pregunta de control, dice que no lo sabe.
+- **Pero no acierta todo.** La recuperación trae el dato exacto en 8 de 9 preguntas (página 2), y aun así el modelo de 3B lo lee mal en varias: confunde cifras del mismo trozo o contesta "no lo sé" con la respuesta delante. El cuello de botella ya no es la búsqueda, es el tamaño del modelo.
+
+## Tres casos
+
+```{python}
+#| echo: false
+caso(8)
+```
+
+```{python}
+#| echo: false
+caso(2)
+```
+
+```{python}
+#| echo: false
+caso(10)
+```
+
+## Todas las respuestas
+
+```{python}
+#| echo: false
+comparativa[["id", "veredicto_sin_rag", "veredicto_con_rag", "nota"]].style.hide(axis="index")
+```
+
+Las respuestas completas, con los trozos recuperados, están en `resultados/comparativa.csv`. Se generan con `python src/evaluar.py`; los veredictos se ponen a mano después.
