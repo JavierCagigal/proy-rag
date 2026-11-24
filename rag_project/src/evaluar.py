@@ -1,7 +1,8 @@
 """Fase C: comparativa sin RAG / con RAG y experimento de chunking (P2).
 
 Lee evaluacion/preguntas.csv y guarda en resultados/:
-  - comparativa.csv: respuesta sin RAG, respuesta con RAG y fuentes recuperadas.
+  - comparativa.csv (qwen) o comparativa_gemini.csv (si hay GEMINI_API_KEY):
+    respuesta sin RAG, respuesta con RAG y fuentes recuperadas.
     El veredicto (correcta / parcial / inventada / no sabe) lo ponemos a mano después,
     en las columnas veredicto_sin_rag y veredicto_con_rag.
   - chunking.csv: por cada tamaño de trozo y pregunta, si los trozos recuperados
@@ -9,6 +10,7 @@ Lee evaluacion/preguntas.csv y guarda en resultados/:
 
 Ejecutar desde rag_project/:  python src/evaluar.py            (las dos cosas)
                               python src/evaluar.py chunking   (solo el experimento, sin LLM)
+                              python src/evaluar.py continuar  (sigue la comparativa donde se quedó)
 """
 import re
 import sys
@@ -18,7 +20,7 @@ from pathlib import Path
 import pandas as pd
 
 from indexar import TAMANOS
-from rag import cargar_base, cita, recuperar, responder_con_rag, responder_sin_rag
+from rag import MODELO_LLM, cargar_base, cita, modelo_en_uso, recuperar, responder_con_rag, responder_sin_rag
 
 CARPETA = Path(__file__).resolve().parent.parent
 PREGUNTAS = CARPETA / "evaluacion" / "preguntas.csv"
@@ -76,11 +78,20 @@ def experimento_chunking():
     return tabla
 
 
-def comparar():
+def comparar(continuar=False):
+    """Con continuar=True salta las preguntas que ya están en el archivo (si Gemini falló a mitad)."""
+    # Un archivo por modelo: comparativa.csv (qwen, en local) y comparativa_gemini.csv (con GEMINI_API_KEY).
+    nombre = "comparativa.csv" if modelo_en_uso() == MODELO_LLM else "comparativa_gemini.csv"
+    destino = RESULTADOS / nombre
+    RESULTADOS.mkdir(exist_ok=True)
+    filas = pd.read_csv(destino).to_dict("records") if continuar and destino.exists() else []
+    hechas = {f["id"] for f in filas}
+
     preguntas = pd.read_csv(PREGUNTAS)
     base = cargar_base()
-    filas = []
     for _, p in preguntas.iterrows():
+        if p["id"] in hechas:
+            continue
         inicio = time.time()
         sin_rag = responder_sin_rag(p["pregunta"])
         con_rag, trozos = responder_con_rag(base, p["pregunta"])
@@ -88,12 +99,15 @@ def comparar():
                       "respuesta_sin_rag": sin_rag, "respuesta_con_rag": con_rag,
                       "fuentes_recuperadas": " ".join(cita(t) for t in trozos),
                       "veredicto_sin_rag": "", "veredicto_con_rag": ""})
+        pd.DataFrame(filas).to_csv(destino, index=False)  # se guarda en cada pregunta
         print(f"  pregunta {p['id']} ({time.time() - inicio:.0f} s)")
-    RESULTADOS.mkdir(exist_ok=True)
-    pd.DataFrame(filas).to_csv(RESULTADOS / "comparativa.csv", index=False)
+    print(f"Guardado en resultados/{nombre} (modelo: {modelo_en_uso()})")
 
 
 if __name__ == "__main__":
-    experimento_chunking()
-    if "chunking" not in sys.argv:
-        comparar()
+    if "continuar" in sys.argv:
+        comparar(continuar=True)
+    else:
+        experimento_chunking()
+        if "chunking" not in sys.argv:
+            comparar()

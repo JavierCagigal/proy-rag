@@ -7,6 +7,7 @@ a una API para la versión en la nube se hace solo ahí.
 Prueba rápida desde rag_project/:  python src/rag.py
 """
 import os
+import time
 
 import requests
 from langchain_chroma import Chroma
@@ -103,15 +104,23 @@ def llamar_llm(prompt):
     """Manda el prompt al LLM y devuelve el texto de la respuesta."""
     clave = os.environ.get("GEMINI_API_KEY")
     if clave:
-        # La clave va en una cabecera, no en la URL, para que no aparezca en registros ni errores.
-        respuesta = requests.post(
-            GEMINI_URL.format(modelo=MODELO_GEMINI),
-            headers={"x-goog-api-key": clave},
-            json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0}},
-            timeout=120,
-        )
+        # Hasta 5 intentos: el plan gratuito a veces responde 429 (demasiadas peticiones) o 503 (saturado).
+        # Se espera 2, 4, 8 y 16 segundos entre intentos.
+        for intento in range(5):
+            # La clave va en una cabecera, no en la URL, para que no aparezca en registros ni errores.
+            respuesta = requests.post(
+                GEMINI_URL.format(modelo=MODELO_GEMINI),
+                headers={"x-goog-api-key": clave},
+                json={"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0}},
+                timeout=120,
+            )
+            if respuesta.status_code not in (429, 500, 503) or intento == 4:
+                break
+            time.sleep(2 ** (intento + 1))
         respuesta.raise_for_status()
-        return respuesta.json()["candidates"][0]["content"]["parts"][0]["text"]
+        # Gemini puede partir la respuesta en varios trozos (parts): hay que unirlos todos.
+        partes = respuesta.json()["candidates"][0]["content"]["parts"]
+        return "".join(parte.get("text", "") for parte in partes)
     # temperature=0: responde casi siempre lo mismo, y la comparativa se puede repetir.
     # num_ctx: por defecto Ollama solo lee unos 2.000-4.000 tokens y cortaría el contexto sin avisar.
     return ChatOllama(model=MODELO_LLM, temperature=0, num_ctx=8192).invoke(prompt).content
