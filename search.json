@@ -1,0 +1,247 @@
+[
+  {
+    "objectID": "rag_project/05-conclusiones.html",
+    "href": "rag_project/05-conclusiones.html",
+    "title": "5. Conclusiones",
+    "section": "",
+    "text": "Sin RAG, los LLM se inventan lo concreto, y con seguridad. De 10 preguntas, qwen2.5:3b se inventó 9; gemini-3.5-flash-lite, mucho mayor, se inventó 4, entre ellas que el propranolol está prohibido en triatlón.\nCon RAG dejan de inventar. Gemini pasa de 2 a 9 respuestas correctas y 0 inventadas, siempre citando la fuente y la página. Con qwen, 2 correctas y 5 parciales: el modelo pequeño lee peor el contexto, y una vez llega a decir que el Frenadol no da positivo. En la pregunta cuya respuesta no está en el corpus, los dos dicen que no lo saben.\nLa recuperación funciona: en 8 de 9 preguntas los trozos que llegan al LLM contienen el dato exacto.\nEl tamaño de trozo importa y se puede medir: con 300 caracteres el dato aparece en 4 de 9 preguntas; con 800, en 8 con la mitad de texto que con 1.500.\nUn RAG se actualiza sin reentrenar. Cuando salgan el reglamento o la lista de la WADA de 2027, basta con cambiar la URL y volver a ejecutar pipeline.py e indexar.py."
+  },
+  {
+    "objectID": "rag_project/05-conclusiones.html#qué-hemos-demostrado",
+    "href": "rag_project/05-conclusiones.html#qué-hemos-demostrado",
+    "title": "5. Conclusiones",
+    "section": "",
+    "text": "Sin RAG, los LLM se inventan lo concreto, y con seguridad. De 10 preguntas, qwen2.5:3b se inventó 9; gemini-3.5-flash-lite, mucho mayor, se inventó 4, entre ellas que el propranolol está prohibido en triatlón.\nCon RAG dejan de inventar. Gemini pasa de 2 a 9 respuestas correctas y 0 inventadas, siempre citando la fuente y la página. Con qwen, 2 correctas y 5 parciales: el modelo pequeño lee peor el contexto, y una vez llega a decir que el Frenadol no da positivo. En la pregunta cuya respuesta no está en el corpus, los dos dicen que no lo saben.\nLa recuperación funciona: en 8 de 9 preguntas los trozos que llegan al LLM contienen el dato exacto.\nEl tamaño de trozo importa y se puede medir: con 300 caracteres el dato aparece en 4 de 9 preguntas; con 800, en 8 con la mitad de texto que con 1.500.\nUn RAG se actualiza sin reentrenar. Cuando salgan el reglamento o la lista de la WADA de 2027, basta con cambiar la URL y volver a ejecutar pipeline.py e indexar.py."
+  },
+  {
+    "objectID": "rag_project/05-conclusiones.html#limitaciones",
+    "href": "rag_project/05-conclusiones.html#limitaciones",
+    "title": "5. Conclusiones",
+    "section": "Limitaciones",
+    "text": "Limitaciones\n\n\n\n\n\n\n\n\nLimitación\nDe dónde sale\nCómo se mejoraría\n\n\n\n\nEl modelo de 3B lee mal el contexto: confunde cifras del mismo trozo y puede dar respuestas peligrosas\nComparativa (página 3)\nUsar un modelo mayor: con Gemini, 9 correctas de 10\n\n\n“pseudoefedrina” no encuentra “Pseudoephedrine”: el modelo de embeddings pierde precisión entre idiomas\nExperimento de chunking (página 2)\nEmbeddings mayores (multilingual-e5-base, bge-m3) o traducir el principio activo antes de buscar\n\n\nLas preguntas en español tienden a traer el reglamento de la FETRI (en español) antes que el de World Triathlon\nExperimento de chunking\nFiltros por metadatos (“según World Triathlon…”)\n\n\n10 preguntas son una muestra pequeña, y los veredictos los pone una persona\nDiseño de la evaluación\nMás preguntas y que dos personas pongan el veredicto por separado\n\n\nGemini no da siempre la misma respuesta aunque se le pida temperature=0 (la pregunta 1 la acertó en una ejecución y en otra dijo “no lo sé”)\nComparativa con Gemini\nRepetir cada pregunta varias veces y contar la mayoría\n\n\nSolo 24 principios activos y 637 medicamentos de CIMA\nDecisión de diseño (página 1)\nAmpliar la lista o buscar en CIMA en el momento de la pregunta"
+  },
+  {
+    "objectID": "rag_project/05-conclusiones.html#mejoras-futuras",
+    "href": "rag_project/05-conclusiones.html#mejoras-futuras",
+    "title": "5. Conclusiones",
+    "section": "Mejoras futuras",
+    "text": "Mejoras futuras\n\nBúsqueda híbrida (BM25 + vectorial): los nombres de medicamentos y sustancias son palabras exactas. Nuestro $contains ya es una versión mínima y fue lo que encontró el tramadol.\nReranking: recuperar 20 trozos y que un modelo más preciso elija los 4 mejores.\nConectarlo con datos propios, por ejemplo los entrenamientos de un reloj deportivo, para responder sobre cada deportista."
+  },
+  {
+    "objectID": "rag_project/05-conclusiones.html#qué-hemos-aprendido",
+    "href": "rag_project/05-conclusiones.html#qué-hemos-aprendido",
+    "title": "5. Conclusiones",
+    "section": "Qué hemos aprendido",
+    "text": "Qué hemos aprendido\n\nEl prompt cuenta: dos reglas nuevas (“empieza por la respuesta directa” y “si no está entre los casos de la lista, la respuesta es no”) llevaron a Gemini de 7 a 9 correctas.\nUn RAG se mejora midiendo: cada ajuste de recuperar() salió de un fallo que el experimento hizo visible, no de una intuición.\nLimpiar los datos pesa tanto como el modelo: las páginas de índice de los PDF ganaban todas las búsquedas sin contener ninguna respuesta.\nUn RAG no hace inteligente a un modelo pequeño: le da los datos, pero leerlos bien sigue dependiendo del LLM. Con la misma recuperación, qwen acierta 2 y Gemini 9."
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html",
+    "href": "rag_project/03-evaluacion.html",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "",
+    "text": "Aquí se demuestra lo que pide la fase C: que el RAG responde mejor que el mismo LLM sin contexto. A cada modelo le hacemos la misma pregunta de dos formas: solo la pregunta, y la pregunta con los trozos recuperados. Como lo único que cambia es el contexto, la diferencia se debe al RAG.\nLo hacemos con dos modelos:"
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html#las-preguntas",
+    "href": "rag_project/03-evaluacion.html#las-preguntas",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "Las preguntas",
+    "text": "Las preguntas\nDiez preguntas de nicho con una respuesta exacta en nuestras fuentes. La última es de control: su respuesta no está en el corpus, para comprobar que con RAG dice que no lo sabe en vez de inventar.\n\n\n\n\n\n\n\nid\npregunta\nfuente\n\n\n\n\n1\n¿Cuánto tiempo de penalización hay por drafting en una prueba de distancia estándar? ¿Y en una sprint?\nreglamento_world_triathlon p.34 | reglamento_fetri p.28\n\n\n2\nSoy de grupos de edad, tengo 35 años y la natación es de 1500 m. ¿A partir de qué temperatura del agua está prohibido el neopreno?\nreglamento_world_triathlon p.41 | reglamento_fetri p.34\n\n\n3\n¿Me puedo desabrochar el casco en la transición antes de dejar la bici en el soporte?\nreglamento_world_triathlon p.69 | reglamento_fetri p.56\n\n\n4\nSegún el reglamento de la Federación Española de Triatlón, ¿con cuántas sanciones por drafting te descalifican en una prueba de media distancia? ¿Se pueden recurrir?\nreglamento_fetri p.51\n\n\n5\nTengo asma y uso Ventolin inhalado. ¿Cuánto puedo tomar el día de la carrera sin dar positivo?\ncima + lista_prohibida_wada p.9\n\n\n6\n¿Y si en vez del inhalador tomo Ventolin jarabe?\ncima + lista_prohibida_wada p.9\n\n\n7\nEstoy resfriado. ¿Me da positivo tomar Frenadol Descongestivo antes de una carrera?\ncima + lista_prohibida_wada p.16\n\n\n8\nMe han recetado Adolonta para el dolor. ¿Lo puedo tomar el día de la competición?\ncima + lista_prohibida_wada p.17\n\n\n9\nTomo Sumial (propranolol) para la tensión. ¿Está prohibido en triatlón?\ncima + lista_prohibida_wada p.20\n\n\n10\n¿Quién ganó el Campeonato del Mundo de Ironman de 2025?\nninguna (pregunta de control)\n\n\n\n\n\nEn fuente, + significa que hacen falta las dos (CIMA y la WADA) y | que vale cualquiera (la FETRI copia en español el reglamento de World Triathlon)."
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html#resultado",
+    "href": "rag_project/03-evaluacion.html#resultado",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "Resultado",
+    "text": "Resultado\nCada respuesta tiene un veredicto: correcta, parcial, inventada (da un dato falso) o no sabe.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nqwen2.5:3b\ngemini-3.5-flash-lite\n\n\n\nSin RAG\nCon RAG\nSin RAG\nCon RAG\n\n\n\n\ncorrecta\n0\n2\n2\n9\n\n\nparcial\n0\n5\n3\n0\n\n\ninventada\n9\n2\n4\n0\n\n\nno sabe\n1\n1\n1\n1\n\n\n\n\n\n\n\n\nSin RAG, los dos se inventan cosas, y con total seguridad. qwen se inventa 9 de 10: que el neopreno se prohíbe “a partir de 28 ºC”, que Adolonta “es adenosina”, que Frenadol “lleva desmopánico”. Gemini sabe más (acierta las 2 más conocidas), pero aun así se inventa 4: la más grave, que el propranolol está prohibido en triatlón, cuando no lo está.\nCon RAG, ninguno de los dos inventa datos de fuera: todo sale de los trozos, con su cita, y en la pregunta de control dicen que no lo saben.\nCon RAG, el modelo grande acierta casi todo: Gemini pasa de 2 a 9 correctas y 0 inventadas. qwen se queda en 2 correctas y 5 parciales, y en dos preguntas lee mal el contexto hasta dar una respuesta peligrosa (que el Frenadol “no da positivo”). La recuperación es la misma para los dos (trae el dato exacto en 8 de 9 preguntas, página 2): la diferencia está en leer bien los trozos, y ahí el tamaño del modelo importa.\nLo único que falla con Gemini y RAG es la del Frenadol: contesta “no lo sé”, porque el trozo con el umbral de 150 µg/mL no se recupera (la limitación de la página 2). Es mejor que inventar.\nEl prompt también importa. En una primera versión, Gemini contestaba “no lo sé” en 2 preguntas que tenía delante (por ejemplo, en la de Sumial, porque el triatlón no aparece en la lista). Añadimos dos reglas al prompt: empezar por la respuesta directa, y que si algo solo se aplica en ciertos casos y la pregunta no es uno de ellos, la respuesta es “no”. Con eso pasó de 7 a 9 correctas."
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html#tres-casos-gemini",
+    "href": "rag_project/03-evaluacion.html#tres-casos-gemini",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "Tres casos (Gemini)",
+    "text": "Tres casos (Gemini)\n\n\nPregunta 9. Tomo Sumial (propranolol) para la tensión. ¿Está prohibido en triatlón?\nRespuesta correcta: No. Los betabloqueantes solo están prohibidos en algunos deportes (tiro con arco, golf, tiro, billar, dardos, automovilismo…) y el triatlón no está en esa lista.\n\nSin RAG (inventada): Sí, el propranolol está prohibido en triatlón bajo las normativas de la Agencia Mundial Antidopaje (WADA/AMA) y, por lo tanto, por World Triathlon y la Federación Española de Triatlón (FETRI). Aquí te explico los detalles importantes que debes conocer: ### 1. ¿Por qué está prohibido? El propranolol pertenece a un grupo de medicamentos llamados betabloqueantes. Estos fármacos reducen el ritmo cardíaco y la presión arterial, y además disminuyen el temblor muscular. En el deporte, se consideraban tradicionalmente sustancias dopantes porque\n\n\nCon RAG (correcta): No. El principio activo de Sumial es el propranolol [cima]. Aunque los beta-bloqueantes (clase a la que pertenece el propranolol) están prohibidos en competición solo en determinados deportes específicos y, en algunos casos, fuera de competición [lista_prohibida_wada, p. 20], el triatlón no se encuentra entre los deportes mencionados en el reglamento [lista_prohibida_wada, p. 20].\n\nPor qué: Sin RAG dice que el propranolol SÍ está prohibido en triatlón (falso). Con RAG: ‘No’; solo en tiro con arco, golf, tiro… (WADA p. 20).\n\n\n\n\nPregunta 2. Soy de grupos de edad, tengo 35 años y la natación es de 1500 m. ¿A partir de qué temperatura del agua está prohibido el neopreno?\nRespuesta correcta: Prohibido con el agua a 22 ºC o más; obligatorio a 15,9 ºC o menos.\n\nSin RAG (inventada): Según la normativa oficial de la World Triathlon (Triatlón Mundial) y de la mayoría de federaciones nacionales (como la FETRI en España), para la categoría de Grupos de Edad en la distancia de 1500 metros (que corresponde a un triatlón distancia olímpica), el uso del neopreno está prohibido a partir de los 24,6 ºC inclusive. Aquí te detallo los rangos de temperatura del agua para los grupos de edad en natación de 1500m: * Menos de 15,9 ºC: El uso del neopreno es obligatorio. * Entre 16,0 ºC y 24,5 ºC: El uso del neop\n\n\nCon RAG (correcta): A 22 ºC [reglamento_fetri, p. 34]. Para las competiciones de Grupos de Edad hasta 45-49 o Veteranos 1, en distancias de hasta 1500 m, el uso del traje de neopreno está prohibido por encima de 22 ºC [reglamento_fetri, p. 34].\n\nPor qué: Sin RAG da 24,6 ºC (es el límite de más de 1500 m). Con RAG: 22 ºC, FETRI p. 34.\n\n\n\n\nPregunta 10. ¿Quién ganó el Campeonato del Mundo de Ironman de 2025?\nRespuesta correcta: No está en nuestras fuentes: con RAG tiene que decir que no lo sabe.\n\nSin RAG (no sabe): En este momento aún no se ha celebrado el Campeonato del Mundo de Ironman de 2025, por lo que no hay ningún ganador. Como referencia, los Campeonatos del Mundo de Ironman suelen disputarse a finales de año (divididos tradicionalmente entre la categoría masculina y femenina en diferentes localizaciones como Kona, Hawái, y Niza, Francia). Por lo tanto, el evento de 2025 tendrá lugar en los últimos meses de ese año.\n\n\nCon RAG (correcta): No lo sé con mis fuentes\n\nPor qué: Sin RAG dice que aún no se ha celebrado (su fecha de corte). Con RAG: ‘No lo sé con mis fuentes’."
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html#el-mismo-caso-con-el-modelo-pequeño-qwen",
+    "href": "rag_project/03-evaluacion.html#el-mismo-caso-con-el-modelo-pequeño-qwen",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "El mismo caso con el modelo pequeño (qwen)",
+    "text": "El mismo caso con el modelo pequeño (qwen)\n\n\nPregunta 8. Me han recetado Adolonta para el dolor. ¿Lo puedo tomar el día de la competición?\nRespuesta correcta: No. Adolonta es tramadol, un narcótico prohibido en competición (sección S7 de la lista WADA).\n\nSin RAG (inventada): Adolonta, también conocido como adenosina, es un medicamento que se utiliza para tratar la angina de pecho y otros problemas relacionados con el corazón. Es importante seguir las indicaciones del médico o farmacéutico, ya que la dosificación y el uso de este medicamento pueden variar según la condición del paciente y las indicaciones específicas del médico. La competición puede ser un momento emocionante y importante, pero es crucial que cualquier medicamento que esté tomando se use de manera segura y conforme a las instrucciones. Si tienes alg\n\n\nCon RAG (parcial): No, no puedes tomar Adolonta el día de la competición. Explicación: Adolonta contiene tramadol, que está prohibido en competiciones según la lista de sustancias prohibidas WADA (S4.2. ANTI-ESTROGENIC SUBSTANCES). Este principio activo se encuentra en la lista prohibida S4.2, que está prohibida en todas las competiciones (in- and out-of-competition).\n\nPor qué: Con RAG: no se puede tomar (bien), pero lo pone en la sección equivocada y ‘también fuera de competición’ (falso). Sin RAG: Adolonta ‘es adenosina’."
+  },
+  {
+    "objectID": "rag_project/03-evaluacion.html#todas-las-respuestas",
+    "href": "rag_project/03-evaluacion.html#todas-las-respuestas",
+    "title": "3. Sin RAG frente a con RAG",
+    "section": "Todas las respuestas",
+    "text": "Todas las respuestas\n\nGeminiqwen\n\n\n\n\n\n\n\n\n\nid\nveredicto_sin_rag\nveredicto_con_rag\nnota\n\n\n\n\n1\ninventada\ncorrecta\nSin RAG: 1 min en sprint y 2 min en estándar (falso: son 30 s y 1 min). Con RAG: 1 min y 30 s, FETRI p. 28.\n\n\n2\ninventada\ncorrecta\nSin RAG da 24,6 ºC (es el límite de más de 1500 m). Con RAG: 22 ºC, FETRI p. 34.\n\n\n3\ncorrecta\ncorrecta\nSin RAG acierta: es una norma muy conocida. Con RAG: 'No' con la norma exacta, FETRI p. 56.\n\n\n4\ninventada\ncorrecta\nSin RAG: dos sanciones y 5 minutos (falso). Con RAG: tres sanciones y no se pueden apelar, FETRI p. 51.\n\n\n5\ncorrecta\ncorrecta\nLas dos dan 1600 µg/24 h y 600 µg/8 h. Con RAG, además, cita la WADA p. 9.\n\n\n6\nparcial\ncorrecta\nSin RAG habla de los efectos del jarabe pero no del dopaje. Con RAG: 'No'; salbutamol por vía oral, prohibido; la excepción es solo inhalado (WADA p. 9).\n\n\n7\nparcial\nno sabe\nSin RAG: pseudoefedrina prohibida, sin el umbral. Con RAG dice 'no lo sé': el trozo con el umbral de 150 µg/mL no se recupera (limitación de los embeddings entre idiomas).\n\n\n8\nparcial\ncorrecta\nSin RAG: prohibido 'en muchos deportes' y habla de la UCI (impreciso). Con RAG: 'No'; tramadol, S7, prohibido en competición (WADA p. 17).\n\n\n9\ninventada\ncorrecta\nSin RAG dice que el propranolol SÍ está prohibido en triatlón (falso). Con RAG: 'No'; solo en tiro con arco, golf, tiro… (WADA p. 20).\n\n\n10\nno sabe\ncorrecta\nSin RAG dice que aún no se ha celebrado (su fecha de corte). Con RAG: 'No lo sé con mis fuentes'.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nid\nveredicto_sin_rag\nveredicto_con_rag\nnota\n\n\n\n\n1\ninventada\nparcial\nCon RAG: 1 min en estándar bien, pero 10 s en sprint (es la sanción de otras infracciones). Sin RAG habla de maratones.\n\n\n2\ninventada\nparcial\nCon RAG da bien los 22 ºC, aunque empieza con un 'No' que no viene a cuento. Sin RAG dice 28 ºC.\n\n\n3\ninventada\nparcial\nCon RAG acierta el 'No', pero lo justifica con la norma de la T1 (s) en vez de la (q). Sin RAG: 'depende del casco'.\n\n\n4\ninventada\nparcial\nCon RAG: no se pueden apelar (bien), pero dice dos sanciones (son tres en media distancia).\n\n\n5\nno sabe\nno sabe\nCon RAG dice que no puede dar la cifra aunque el límite estaba en los trozos. Sin RAG tampoco se moja.\n\n\n6\ninventada\ninventada\nCon RAG dice que el jarabe NO está prohibido y le aplica el límite inhalado (falso). Sin RAG dice que Ventolin es formoterol.\n\n\n7\ninventada\ninventada\nCon RAG dice que Frenadol NO da positivo (falso y peligroso). Sin RAG: que lleva 'desmopánico'.\n\n\n8\ninventada\nparcial\nCon RAG: no se puede tomar (bien), pero lo pone en la sección equivocada y 'también fuera de competición' (falso). Sin RAG: Adolonta 'es adenosina'.\n\n\n9\ninventada\ncorrecta\nCon RAG: 'No.' Correcto, aunque sin explicación ni cita.\n\n\n10\ninventada\ncorrecta\nCon RAG: 'No lo sé con mis fuentes'. Sin RAG se inventa ganadores (Nicki Yuen...).\n\n\n\n\n\n\n\n\nLas respuestas completas, con los trozos recuperados, están en resultados/comparativa.csv (qwen) y resultados/comparativa_gemini.csv (Gemini). Se generan con python src/evaluar.py: sin la variable GEMINI_API_KEY usa qwen y con ella, Gemini. Los veredictos se ponen a mano después."
+  },
+  {
+    "objectID": "rag_project/01-datos.html",
+    "href": "rag_project/01-datos.html",
+    "title": "1. Datos",
+    "section": "",
+    "text": "Un RAG solo sabe lo que hay en sus datos. Esta página explica de dónde salen, cómo se descargan y cómo se limpian. Todo lo hace un único script, src/pipeline.py, sin ningún paso manual: si mañana sale el reglamento de 2027, se cambia la URL, se vuelve a ejecutar y el asistente queda actualizado sin reentrenar nada."
+  },
+  {
+    "objectID": "rag_project/01-datos.html#las-fuentes",
+    "href": "rag_project/01-datos.html#las-fuentes",
+    "title": "1. Datos",
+    "section": "Las fuentes",
+    "text": "Las fuentes\nElegimos fuentes con respuestas concretas (cifras), actuales (cambian cada año) y de nicho (poco presentes en internet), porque es ahí donde un LLM se inventa las cosas y donde un RAG marca la diferencia.\n\n\n\n\n\n\n\n\nFuente\nTipo\nQué aporta\n\n\n\n\nReglamento de competición de World Triathlon 2026\nPDF, inglés\nPenalizaciones, drafting, neopreno, transiciones\n\n\nReglamento de Competiciones de la FETRI 2026\nPDF, español\nLo mismo con las normas nacionales\n\n\nLista de sustancias prohibidas de la WADA 2026\nPDF, inglés\nQué está prohibido, cuándo y por qué vía\n\n\nCIMA, de la Agencia Española del Medicamento\nAPI REST\nQué principio activo lleva cada medicamento español y cómo se toma\n\n\n\nMezclamos PDF y API, como pide la fase A. Los PDF son documentos públicos oficiales: se descargan en cada ejecución y no se suben al repositorio."
+  },
+  {
+    "objectID": "rag_project/01-datos.html#descargar-los-pdf",
+    "href": "rag_project/01-datos.html#descargar-los-pdf",
+    "title": "1. Datos",
+    "section": "Descargar los PDF",
+    "text": "Descargar los PDF\n\n\ndef descargar_pdf(pdf):\n    \"\"\"Guarda el PDF en data/raw/ y devuelve la ruta. Si ya está, no lo baja otra vez.\"\"\"\n    ruta = RAW / (pdf[\"nombre\"] + \".pdf\")\n    if ruta.exists():\n        return ruta\n    respuesta = requests.get(pdf[\"url\"], headers=CABECERAS, timeout=60)\n    respuesta.raise_for_status()\n    if not respuesta.content.startswith(b\"%PDF\"):\n        raise ValueError(f\"{pdf['url']} no ha devuelto un PDF\")\n    ruta.write_bytes(respuesta.content)\n    return ruta\n\n\nDos detalles. Si el PDF ya está en data/raw/, no se vuelve a bajar. Y la web de la WADA no sirve el archivo si la petición no parece de un navegador, por eso se envía una cabecera User-Agent.\nCada página se extrae por separado con pypdf, para poder citar el número de página en las respuestas."
+  },
+  {
+    "objectID": "rag_project/01-datos.html#limpiar-el-texto",
+    "href": "rag_project/01-datos.html#limpiar-el-texto",
+    "title": "1. Datos",
+    "section": "Limpiar el texto",
+    "text": "Limpiar el texto\nEl texto de un PDF trae ruido que confunde a la búsqueda. Lo peor eran las páginas del índice: una línea como “5.5. IR O NO A RUEDA / DRAFTING ……… 47” se parece mucho a una pregunta sobre drafting, pero no contiene la respuesta.\n\n\ndef es_ruido(linea, repetidas):\n    \"\"\"Cabecera/pie repetido, línea de índice (\"5.5. DRAFTING ....... 47\") o número de página suelto (\"35/212\").\"\"\"\n    linea = linea.strip()\n    return (linea in repetidas\n            or re.search(r\"\\.{5,}\", linea) is not None\n            or re.fullmatch(r\"\\d+(\\s*/\\s*\\d+)?\", linea) is not None)\n\n\n\n\ndef limpiar(texto, repetidas=frozenset()):\n    \"\"\"Quita el ruido, une palabras partidas con guion y normaliza espacios.\"\"\"\n    lineas = [l for l in texto.splitlines() if not es_ruido(l, repetidas)]\n    texto = \"\\n\".join(lineas)\n    texto = re.sub(r\"(\\w)-\\n(\\w)\", r\"\\1\\2\", texto)   # \"competi-\\nción\" -&gt; \"competición\"\n    texto = re.sub(r\"[ \\t]+\", \" \", texto)             # varios espacios -&gt; uno\n    texto = re.sub(r\"\\n{3,}\", \"\\n\\n\", texto)          # deja como mucho una línea en blanco\n    return texto.strip()\n\n\nLas cabeceras y pies se detectan solos: son las líneas que se repiten en más de la mitad de las páginas de un documento.\nAsí queda una página del índice de la FETRI antes y después de limpiar:\n\nfrom pypdf import PdfReader\n\npagina = PdfReader(\"data/raw/reglamento_fetri.pdf\").pages[3].extract_text()\nprint(\"ANTES:\\n\", pagina[:400])\nprint(\"\\nDESPUÉS:\\n\", pipeline.limpiar(pagina)[:400] or \"(vacía: la página se descarta)\")\n\nANTES:\n  \n2 \n \nREGLAMENTO DE COMPETICIONES | EDICIÓN 2026 \n1. INTRODUCCIÓN ....................................................................................................................................................... 7 \n1.1. TRIATLÓN .......................................................................................................................................................... 7 \n1.2. O\n\nDESPUÉS:\n REGLAMENTO DE COMPETICIONES | EDICIÓN 2026 \nREGISTRO ESTATAL DE ENTIDADES DEPORTIVAS - Consejo Superior de Deportes"
+  },
+  {
+    "objectID": "rag_project/01-datos.html#los-medicamentos-de-cima",
+    "href": "rag_project/01-datos.html#los-medicamentos-de-cima",
+    "title": "1. Datos",
+    "section": "Los medicamentos de CIMA",
+    "text": "Los medicamentos de CIMA\nLa pregunta “¿me da positivo el Ventolin?” no se puede contestar solo con la lista de la WADA, que habla de salbutamol y nunca dice “Ventolin”. CIMA traduce el nombre comercial al principio activo y dice la vía de administración, que cambia la respuesta: el salbutamol inhalado está permitido con límites y en jarabe no.\nNo bajamos los más de 20.000 medicamentos de España: solo los de 24 principios activos que importan en el deporte.\n\nprint(pipeline.PRINCIPIOS_ACTIVOS)\n\n['salbutamol', 'formoterol', 'salmeterol', 'terbutalina', 'prednisona', 'dexametasona', 'budesonida', 'fluticasona', 'betametasona', 'metilprednisolona', 'pseudoefedrina', 'fenilefrina', 'metilfenidato', 'modafinilo', 'cafeina', 'furosemida', 'propranolol', 'tramadol', 'codeina', 'testosterona', 'anastrozol', 'ibuprofeno', 'paracetamol', 'cetirizina']\n\n\nEstán agrupados por motivo: broncodilatadores para el asma, corticoides, estimulantes y descongestionantes de los antigripales, un diurético, un betabloqueante, analgésicos (el tramadol está prohibido en competición y la codeína no), hormonas y tres medicamentos permitidos (ibuprofeno, paracetamol, cetirizina) para comprobar que el asistente también sabe decir “no da positivo”.\n\n\ndef descargar_cima(principio_activo):\n    \"\"\"Devuelve la lista de medicamentos (dicts del JSON) que llevan ese principio activo.\"\"\"\n    ruta = RAW / \"cima\" / f\"{principio_activo}.json\"\n    if ruta.exists():\n        return json.loads(ruta.read_text(encoding=\"utf-8\"))\n    medicamentos, pagina = [], 1\n    while True:  # la API va por páginas (totalFilas, pagina, tamanioPagina)\n        respuesta = requests.get(CIMA_URL, params={\"practiv1\": principio_activo, \"pagina\": pagina},\n                                 headers=CABECERAS, timeout=60)\n        respuesta.raise_for_status()\n        datos = respuesta.json()\n        medicamentos += datos.get(\"resultados\", [])\n        if pagina * datos[\"tamanioPagina\"] &gt;= datos[\"totalFilas\"]:\n            break\n        pagina += 1\n    ruta.parent.mkdir(parents=True, exist_ok=True)\n    ruta.write_text(json.dumps(medicamentos, ensure_ascii=False), encoding=\"utf-8\")\n    return medicamentos\n\n\nLa API devuelve los resultados por páginas, así que el bucle pide la siguiente mientras queden. Después nos quedamos solo con los medicamentos comercializados y de marca: los genéricos ya llevan el principio activo en el nombre (“PARACETAMOL CINFA”), y las marcas (“Frenadol”, “Adolonta”) son justo lo que un LLM no conoce.\nCada medicamento se convierte en una frase corta:\n\n\ndef texto_medicamento(medicamento, principio_activo):\n    \"\"\"Convierte un medicamento en una frase para el corpus.\"\"\"\n    vias = \", \".join(v[\"nombre\"].lower() for v in medicamento.get(\"viasAdministracion\", []))\n    forma = medicamento.get(\"formaFarmaceutica\", {}).get(\"nombre\", \"\").lower()\n    receta = \"Con receta\" if medicamento.get(\"receta\") else \"Sin receta\"\n    return (f\"{medicamento['nombre']}. Medicamento español. Principio activo: {principio_activo}. \"\n            f\"Forma: {forma}. Vía de administración: {vias}. {receta}.\")\n\n\n\nfor texto in corpus[corpus.texto.str.startswith(\"VENTOLIN\")].texto:\n    print(texto)\n\nVENTOLIN 0,5 mg/ml SOLUCION INYECTABLE. Medicamento español. Principio activo: salbutamol. Forma: solución inyectable. Vía de administración: vía intramuscular, vía intravenosa, vía subcutánea. Con receta.\nVENTOLIN 100 microgramos/INHALACIÓN SUSPENSIÓN PARA INHALACIÓN EN ENVASE A PRESIÓN. Medicamento español. Principio activo: salbutamol. Forma: suspensión para inhalación en envase a presión. Vía de administración: vía inhalatoria. Con receta.\nVENTOLIN 2 mg/5 ml JARABE. Medicamento español. Principio activo: salbutamol. Forma: jarabe. Vía de administración: vía oral. Con receta.\nVENTOLIN 5 mg/ml SOLUCION PARA INHALACION POR NEBULIZADOR. Medicamento español. Principio activo: salbutamol. Forma: solución para inhalación por nebulizador. Vía de administración: vía inhalatoria. Con receta."
+  },
+  {
+    "objectID": "rag_project/01-datos.html#el-corpus",
+    "href": "rag_project/01-datos.html#el-corpus",
+    "title": "1. Datos",
+    "section": "El corpus",
+    "text": "El corpus\nEl resultado es data/processed/corpus.jsonl: una línea por página de PDF y una por medicamento, con su fuente, URL y página. Los medicamentos guardan además su principio_activo, que usa la búsqueda en dos pasos (página 2).\n\nresumen = corpus.groupby(\"fuente\").agg(lineas=(\"texto\", \"size\"),\n                                       caracteres_medios=(\"texto\", lambda t: int(t.str.len().mean())))\nresumen\n\n\n\n\n\n\n\n\nlineas\ncaracteres_medios\n\n\nfuente\n\n\n\n\n\n\ncima\n637\n197\n\n\nlista_prohibida_wada\n20\n1264\n\n\nreglamento_fetri\n134\n2330\n\n\nreglamento_world_triathlon\n204\n1842\n\n\n\n\n\n\n\n\ncorpus[corpus.fuente == \"cima\"].principio_activo.value_counts().head(10)\n\nprincipio_activo\nibuprofeno                                  61\nsalmeterol + fluticasona                    48\nparacetamol                                 38\nfluticasona                                 34\nbudesonida                                  28\ndexametasona                                27\ntramadol                                    26\ntramadol + paracetamol                      24\nmetilprednisolona                           22\nparacetamol + clorfenamina + fenilefrina    20\nName: count, dtype: int64\n\n\nEn total, 995 líneas, que se generan en unos 20 segundos con python src/pipeline.py."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Deporte con IA",
+    "section": "",
+    "text": "Alejandro, Miguel y Javier"
+  },
+  {
+    "objectID": "index.html#grupo-3",
+    "href": "index.html#grupo-3",
+    "title": "Deporte con IA",
+    "section": "",
+    "text": "Alejandro, Miguel y Javier"
+  },
+  {
+    "objectID": "index.html#trabajo-2-un-asistente-de-competición-para-triatletas",
+    "href": "index.html#trabajo-2-un-asistente-de-competición-para-triatletas",
+    "title": "Deporte con IA",
+    "section": "Trabajo 2: un asistente de competición para triatletas",
+    "text": "Trabajo 2: un asistente de competición para triatletas\nAntes de una carrera, un triatleta se hace preguntas muy concretas: ¿me dejan usar neopreno con el agua a 22 ºC?, ¿cuánto me penalizan por ir a rueda?, ¿me da positivo el antigripal que estoy tomando? Un chatbot genérico contesta a todas con seguridad, y muchas veces se lo inventa: no conoce el reglamento de este año ni los nombres comerciales de los medicamentos españoles.\nHemos construido un RAG (Retrieval-Augmented Generation): antes de contestar, busca en los documentos oficiales los fragmentos que responden a la pregunta y se los da al LLM para que responda con ellos, citando la fuente y la página.\nSus fuentes:\n\nLos reglamentos de competición de World Triathlon y de la Federación Española de Triatlón (2026).\nLa lista de sustancias prohibidas de la WADA (2026).\nCIMA, la base de datos de la Agencia Española del Medicamento, para saber qué principio activo lleva cada medicamento y cómo se toma."
+  },
+  {
+    "objectID": "index.html#enlaces",
+    "href": "index.html#enlaces",
+    "title": "Deporte con IA",
+    "section": "Enlaces",
+    "text": "Enlaces\n\nApp: asistente-triatlon-921790710609.europe-west1.run.app. La primera pregunta tras un rato sin uso tarda alrededor de un minuto, porque Cloud Run arranca la app desde cero.\nCódigo: github.com/JavierCagigal/proy-rag"
+  },
+  {
+    "objectID": "index.html#las-páginas",
+    "href": "index.html#las-páginas",
+    "title": "Deporte con IA",
+    "section": "Las páginas",
+    "text": "Las páginas\n\nDatos: de dónde salen los documentos y cómo se descargan y limpian sin pasos manuales.\nArquitectura y chunking: cómo se trocean y se buscan, y el experimento para elegir el tamaño de trozo.\nSin RAG frente a con RAG: diez preguntas al mismo modelo, con y sin los documentos.\nApp: la interfaz, el LLM y el despliegue.\nConclusiones: qué hemos demostrado, sus límites y qué haríamos después."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html",
+    "href": "rag_project/02-arquitectura.html",
+    "title": "2. Arquitectura y chunking",
+    "section": "",
+    "text": "Esta página explica cómo funciona el asistente por dentro: cómo se trocean los documentos, cómo se buscan los trozos que responden a una pregunta y por qué elegimos cada pieza."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#el-recorrido-de-una-pregunta",
+    "href": "rag_project/02-arquitectura.html#el-recorrido-de-una-pregunta",
+    "title": "2. Arquitectura y chunking",
+    "section": "El recorrido de una pregunta",
+    "text": "El recorrido de una pregunta\n\n\n\n\n\nflowchart LR\n  subgraph Una vez\n    A[corpus.jsonl] --&gt; B[Trocear&lt;br/&gt;800 caracteres] --&gt; C[Embeddings&lt;br/&gt;e5-small] --&gt; D[(Chroma)]\n  end\n  subgraph Cada pregunta\n    P[Pregunta] --&gt; Q[Embedding de&lt;br/&gt;la pregunta] --&gt; D\n    D --&gt; T[Trozos más&lt;br/&gt;parecidos] --&gt; R[Prompt:&lt;br/&gt;instrucciones +&lt;br/&gt;trozos + pregunta] --&gt; L[LLM] --&gt; S[Respuesta&lt;br/&gt;con citas]\n  end\n\n\n\n\n\n\nLa idea clave: el LLM no aprende nada. Los documentos se trocean e indexan una vez; en cada pregunta solo se busca y se le pasan al LLM los trozos encontrados, como unos apuntes."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#las-piezas-y-por-qué",
+    "href": "rag_project/02-arquitectura.html#las-piezas-y-por-qué",
+    "title": "2. Arquitectura y chunking",
+    "section": "Las piezas y por qué",
+    "text": "Las piezas y por qué\n\n\n\n\n\n\n\n\nPieza\nElegimos\nPor qué\n\n\n\n\nFramework\nLangChain\nTrae integrados los splitters, Chroma, los embeddings de Hugging Face y Ollama\n\n\nBase vectorial\nChromaDB\nFunciona en una carpeta, sin servidor. Para unos miles de trozos sobra\n\n\nEmbeddings\nintfloat/multilingual-e5-small\nGratis, en CPU y multilingüe: preguntamos en español y la WADA y World Triathlon están en inglés\n\n\nLLM\nqwen2.5:3b con Ollama en local; Gemini en la app publicada\nVer la página 4"
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#embeddings-convertir-texto-en-vectores",
+    "href": "rag_project/02-arquitectura.html#embeddings-convertir-texto-en-vectores",
+    "title": "2. Arquitectura y chunking",
+    "section": "Embeddings: convertir texto en vectores",
+    "text": "Embeddings: convertir texto en vectores\nUn embedding es una lista de 384 números que representa el significado de un texto. Dos textos que dicen lo mismo con palabras distintas dan vectores cercanos, y Chroma mide esa cercanía con la similitud del coseno.\n\n\ndef crear_embeddings():\n    \"\"\"El modelo de embeddings, con los prefijos que espera e5. rag.py usa este mismo.\"\"\"\n    # normalize_embeddings: vectores de longitud 1, así la distancia coseno es directa.\n    return HuggingFaceEmbeddings(\n        model_name=MODELO_EMBEDDINGS,\n        encode_kwargs={\"prompt\": \"passage: \", \"normalize_embeddings\": True},\n        query_encode_kwargs={\"prompt\": \"query: \", \"normalize_embeddings\": True},\n    )\n\n\nEl modelo e5 se entrenó con el prefijo passage: delante de los documentos y query: delante de las preguntas; sin ellos recupera peor. rag.py usa esta misma función para que los vectores de las preguntas y de los trozos salgan del mismo modelo: si no, no serían comparables."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#trocear",
+    "href": "rag_project/02-arquitectura.html#trocear",
+    "title": "2. Arquitectura y chunking",
+    "section": "Trocear",
+    "text": "Trocear\n\n\ndef trocear(documentos, tamano, solape):\n    \"\"\"Parte los documentos con RecursiveCharacterTextSplitter. Los trozos heredan la metadata.\"\"\"\n    # Corta primero por párrafos, luego por líneas, luego por espacios: intenta no partir frases.\n    divisor = RecursiveCharacterTextSplitter(chunk_size=tamano, chunk_overlap=solape)\n    return divisor.split_documents(documentos)\n\n\nRecursiveCharacterTextSplitter corta primero por párrafos, luego por líneas y luego por palabras, para no partir frases. Los trozos se solapan 100 caracteres para que un dato no quede cortado justo en el borde. Cada trozo hereda la fuente y la página de su documento, y así la respuesta puede citarlas."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#el-experimento-de-chunking",
+    "href": "rag_project/02-arquitectura.html#el-experimento-de-chunking",
+    "title": "2. Arquitectura y chunking",
+    "section": "El experimento de chunking",
+    "text": "El experimento de chunking\nEl tamaño de trozo no se elige a ojo: lo medimos, como los hiperparámetros del Trabajo 1. Indexamos el corpus tres veces (300, 800 y 1.500 caracteres) y, para cada una de nuestras 9 preguntas con respuesta, comprobamos si los trozos recuperados contienen:\n\nla página donde está la respuesta, y\nel dato exacto (la cifra), que es lo que de verdad importa.\n\n\nresumen = chunking.groupby(\"tamano\").agg(\n    pagina_correcta=(\"acierto\", \"sum\"),\n    dato_exacto=(\"dato\", \"sum\"),\n    texto_medio=(\"caracteres_contexto\", \"mean\"),\n).astype(int)\nresumen\n\n\n\n\n\n\n\n\npagina_correcta\ndato_exacto\ntexto_medio\n\n\ntamano\n\n\n\n\n\n\n\n300\n9\n4\n1411\n\n\n800\n9\n8\n3117\n\n\n1500\n9\n8\n5526\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nElegimos 800. Con 300 caracteres casi siempre se encuentra la página, pero el trozo corta las tablas (las penalizaciones o las temperaturas del neopreno) y la cifra se queda fuera: solo 4 de 9. Con 1.500 se acierta lo mismo que con 800, pero el LLM recibe un 77 % más de texto: más ruido para un modelo pequeño y respuestas más lentas. Además, 1.500 caracteres son unos 400 tokens, cerca del máximo de 512 que lee e5."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#buscar-la-recuperación-en-dos-pasos",
+    "href": "rag_project/02-arquitectura.html#buscar-la-recuperación-en-dos-pasos",
+    "title": "2. Arquitectura y chunking",
+    "section": "Buscar: la recuperación en dos pasos",
+    "text": "Buscar: la recuperación en dos pasos\nLas preguntas de medicamentos tienen una trampa: “¿Puedo tomar Adolonta?” necesita un trozo de CIMA (Adolonta lleva tramadol) y otro de la WADA (el tramadol está prohibido en competición). Pero la WADA nunca dice “Adolonta”, así que una sola búsqueda no encuentra los dos.\n\n\ndef recuperar(base, pregunta, k=K):\n    \"\"\"Devuelve los trozos más parecidos a la pregunta (Document con su metadata).\n\n    En dos pasos, para las preguntas de medicamentos (GUIA_PROYECTO.md, apartado 3):\n    la WADA habla de \"salbutamol\", no de \"Ventolin\".\n    \"\"\"\n    generales = base.similarity_search(pregunta, k=k)\n\n    # Paso 1b: ¿la pregunta nombra un medicamento? Se busca solo en CIMA y se añaden los muy parecidos.\n    # Hace falta porque los trozos de los reglamentos (largos y en español) suelen ganar en la búsqueda general.\n    cima = [t for t in generales if t.metadata[\"fuente\"] == \"cima\"]\n    cima += [t for t, puntuacion in base.similarity_search_with_relevance_scores(pregunta, k=2, filter=SOLO_CIMA)\n             if puntuacion &gt;= UMBRAL_CIMA]\n    if not cima:\n        return sin_repetidos(generales)\n\n    # Es una pregunta de medicamentos: la respuesta está en CIMA + WADA. Los trozos del reglamento\n    # solo meten ruido, y de CIMA bastan 2 (las demás presentaciones del mismo medicamento se repiten).\n    cima = sin_repetidos(cima)[:2]\n    wada = [t for t in generales if t.metadata[\"fuente\"] == \"lista_prohibida_wada\"]\n\n    # Paso 2 (expansión de la consulta): por cada principio activo, buscar qué dice la WADA.\n    for principio in {t.metadata[\"principio_activo\"] for t in cima}:\n        wada += base.similarity_search(principio, k=k, filter=SOLO_WADA)\n        # Además, por palabra exacta: \"Tramadol\" está dentro de una lista larga de narcóticos\n        # y el embedding de esa lista no se parece al de una sola palabra.\n        for nombre in principio.split(\" + \"):\n            wada += base.similarity_search(nombre, k=2, filter=SOLO_WADA,\n                                           where_document={\"$contains\": nombre.capitalize()})\n    return sin_repetidos(cima + wada)\n\n\nCada paso arregla un fallo que encontró el experimento:\n\nBúsqueda solo en CIMA con un umbral. En la búsqueda general ganaban los trozos largos del reglamento de la FETRI, que están en español como la pregunta, y “Sumial” no aparecía. El umbral 0,85 está medido: las preguntas de medicamentos tienen un trozo de CIMA con relevancia ≥ 0,857 y las demás ≤ 0,836.\nExpansión de la consulta. Del trozo de CIMA sale el principio_activo y se busca con él en la WADA.\nPalabra exacta ($contains). “Tramadol” está dentro de una lista larga de narcóticos, y el embedding de esa lista no se parece al de una sola palabra. Buscar el texto exacto lo encuentra. Es una búsqueda híbrida mínima: la fase E completa sería BM25.\n\nEsta es nuestra fase E (extra). Los pasos 1 y 2 usan filtros por metadatos: cada trozo guarda su fuente, y le pedimos a Chroma que busque solo en CIMA ({\"fuente\": \"cima\"}) o solo en la WADA ({\"fuente\": \"lista_prohibida_wada\"}). El paso 3 añade una búsqueda por palabra exacta a la vectorial.\nEstos son los trozos que llegan al LLM con la pregunta de Adolonta:\n\nprint(chunking.query(\"tamano == 800 and id == 8\").recuperadas.iloc[0])\n\n[cima] [cima] [lista_prohibida_wada, p. 10] [lista_prohibida_wada, p. 5] [lista_prohibida_wada, p. 10] [lista_prohibida_wada, p. 6] [lista_prohibida_wada, p. 17]\n\n\nDos trozos de CIMA y los de la WADA, entre ellos la página 17, que es donde está el tramadol."
+  },
+  {
+    "objectID": "rag_project/02-arquitectura.html#una-limitación-medida",
+    "href": "rag_project/02-arquitectura.html#una-limitación-medida",
+    "title": "2. Arquitectura y chunking",
+    "section": "Una limitación medida",
+    "text": "Una limitación medida\nLa pregunta del Frenadol falla con los tres tamaños: “pseudoefedrina” en español no encuentra la nota de la WADA “Pseudoephedrine: Prohibited when its concentration in urine is greater than 150 micrograms per millilitre”, y buscando en inglés sí. El modelo e5-small pierde precisión entre idiomas con palabras sueltas. Un modelo de embeddings mayor (multilingual-e5-base, bge-m3) o traducir el principio activo antes de buscar lo arreglaría."
+  },
+  {
+    "objectID": "rag_project/04-app.html",
+    "href": "rag_project/04-app.html",
+    "title": "4. App",
+    "section": "",
+    "text": "La fase D pide una interfaz desplegada públicamente. Nuestra app está hecha con Streamlit y publicada en Google Cloud Run.\nEnlace a la app: https://asistente-triatlon-921790710609.europe-west1.run.app"
+  },
+  {
+    "objectID": "rag_project/04-app.html#qué-hace",
+    "href": "rag_project/04-app.html#qué-hace",
+    "title": "4. App",
+    "section": "Qué hace",
+    "text": "Qué hace\n\nUna caja para escribir la pregunta y cuatro preguntas de ejemplo en la barra lateral.\nLa respuesta, y debajo un desplegable con las fuentes: cada trozo recuperado con su cita ([reglamento_fetri, p. 28]) y el enlace al documento o a la ficha del medicamento en CIMA.\nUna casilla “Comparar con el LLM sin RAG” que pone las dos respuestas lado a lado: es la comparativa de la página 3 en directo.\n\nToda la app es un único archivo, app.py, que solo usa las funciones de rag.py. La base de Chroma y el modelo de embeddings se cargan una sola vez con @st.cache_resource, no en cada pregunta."
+  },
+  {
+    "objectID": "rag_project/04-app.html#el-prompt",
+    "href": "rag_project/04-app.html#el-prompt",
+    "title": "4. App",
+    "section": "El prompt",
+    "text": "El prompt\n\nprint(rag.PROMPT_RAG)\n\nEres un asistente para triatletas. Responde en español usando SOLO el contexto de abajo (puede estar en inglés).\n- Los trozos [cima] dicen qué principio activo lleva un medicamento español y por qué vía se toma.\n- Los trozos [lista_prohibida_wada] dicen qué sustancias están prohibidas, si solo en competición y con qué límites.\n- Si preguntan por un medicamento: di su principio activo, busca esa sustancia en la lista de la WADA y explica si está prohibida, cuándo, y si depende de la vía o de la dosis.\n- Da las cifras exactas del contexto y cita la fuente entre corchetes después de cada dato, por ejemplo [reglamento_fetri, p. 28].\n- Solo si el contexto no tiene la respuesta, di: \"No lo sé con mis fuentes\".\n\nContexto:\n{contexto}\n\nPregunta: {pregunta}\n\n\n\nLas instrucciones son explícitas porque el modelo local es pequeño: le decimos qué contiene cada tipo de trozo, los pasos para una pregunta de medicamentos, que dé las cifras exactas con la cita y que diga “No lo sé con mis fuentes” solo si de verdad no está. Con un prompt más corto, qwen contestaba “no lo sé” incluso con la respuesta delante."
+  },
+  {
+    "objectID": "rag_project/04-app.html#qué-llm-usa",
+    "href": "rag_project/04-app.html#qué-llm-usa",
+    "title": "4. App",
+    "section": "Qué LLM usa",
+    "text": "Qué LLM usa\n\n\ndef llamar_llm(prompt):\n    \"\"\"Manda el prompt al LLM y devuelve el texto de la respuesta.\"\"\"\n    clave = os.environ.get(\"GEMINI_API_KEY\")\n    if clave:\n        # La clave va en una cabecera, no en la URL, para que no aparezca en registros ni errores.\n        respuesta = requests.post(\n            GEMINI_URL.format(modelo=MODELO_GEMINI),\n            headers={\"x-goog-api-key\": clave},\n            json={\"contents\": [{\"parts\": [{\"text\": prompt}]}], \"generationConfig\": {\"temperature\": 0}},\n            timeout=120,\n        )\n        respuesta.raise_for_status()\n        return respuesta.json()[\"candidates\"][0][\"content\"][\"parts\"][0][\"text\"]\n    # temperature=0: responde casi siempre lo mismo, y la comparativa se puede repetir.\n    # num_ctx: por defecto Ollama solo lee unos 2.000-4.000 tokens y cortaría el contexto sin avisar.\n    return ChatOllama(model=MODELO_LLM, temperature=0, num_ctx=8192).invoke(prompt).content\n\n\nllamar_llm() es el único sitio del código que sabe qué LLM se usa:\n\nEn local usamos qwen2.5:3b con Ollama: gratis y sin internet. Es el modelo de la evaluación.\nEn la app publicada usamos Gemini (gemini-3.5-flash-lite) por API. Cloud Run no puede ejecutar un LLM con comodidad: probamos a meter Ollama dentro del contenedor y la imagen pesaba unos 6 GB, cada respuesta tardaba 10-30 segundos y necesitaba 4 CPU y 8 GB. Elegimos Flash-Lite porque está en el plan gratuito, es el más rápido y todavía respeta temperature=0.\n\nSe elige con una variable de entorno: si existe GEMINI_API_KEY, Gemini; si no, Ollama. La clave nunca está en el código ni en el repositorio: Cloud Run la lee de Secret Manager. En la llamada va en una cabecera, no en la URL, para que no salga en los registros."
+  },
+  {
+    "objectID": "rag_project/04-app.html#cómo-está-desplegada",
+    "href": "rag_project/04-app.html#cómo-está-desplegada",
+    "title": "4. App",
+    "section": "Cómo está desplegada",
+    "text": "Cómo está desplegada\nrag_project/Dockerfile construye una imagen con Python, las librerías y la colección trozos_800 ya indexada, así que cada arranque no tiene que descargar ni indexar nada. Un solo comando la construye en Google Cloud Build y la publica:\ngcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \\\n  --cpu 2 --memory 4Gi --max-instances 1 --timeout 3600 --session-affinity \\\n  --set-secrets GEMINI_API_KEY=gemini-api-key:latest --allow-unauthenticated\nCon 2 CPU, la primera pregunta después de un rato sin uso tarda alrededor de un minuto: Cloud Run arranca la app desde cero y carga el modelo de embeddings. Las siguientes, unos segundos. --max-instances 1 limita el coste y --session-affinity mantiene a cada visitante en la misma copia, porque Streamlit usa una conexión abierta (websocket) con el navegador."
+  }
+]
