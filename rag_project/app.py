@@ -9,7 +9,7 @@ import streamlit as st
 
 # rag.py importa indexar.py como módulo hermano, así que src/ tiene que estar en el path.
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
-from rag import cargar_base, cita, responder_con_rag, responder_sin_rag  # noqa: E402
+from rag import cargar_base, cita, modelo_en_uso, responder_con_rag, responder_sin_rag  # noqa: E402
 
 EJEMPLOS = [
     "¿A partir de qué temperatura del agua se prohíbe el neopreno en grupos de edad?",
@@ -21,7 +21,7 @@ EJEMPLOS = [
 st.set_page_config(page_title="Asistente del triatleta", page_icon="🏊")
 st.title("Asistente de competición para triatletas")
 st.caption("Reglamento de World Triathlon y de la FETRI, lista de prohibidas de la WADA 2026 "
-           "y medicamentos españoles de CIMA: ¿me da positivo?")
+           f"y medicamentos españoles de CIMA: ¿me da positivo? · Modelo: {modelo_en_uso()}")
 
 
 @st.cache_resource

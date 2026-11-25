@@ -2,4 +2,63 @@
 title: "4. App"
 ---
 
-<!-- P3 (Alejandro). Captura y enlace a la app, cómo se despliega, qué LLM usa y por qué, y los extras (fase E) si los hay. -->
+```{python}
+#| echo: false
+import inspect
+import sys
+
+from IPython.display import Markdown
+
+sys.path.insert(0, "src")
+import rag  # noqa: E402
+
+
+def mostrar_codigo(funcion):
+    return Markdown(f"```python\n{inspect.getsource(funcion)}```")
+```
+
+La fase D pide una interfaz **desplegada públicamente**. Nuestra app está hecha con Streamlit y publicada en Google Cloud Run.
+
+**Enlace a la app:** <https://asistente-triatlon-921790710609.europe-west1.run.app>
+
+## Qué hace
+
+- Una caja para escribir la pregunta y cuatro preguntas de ejemplo en la barra lateral.
+- La respuesta, y debajo un desplegable con las **fuentes**: cada trozo recuperado con su cita (`[reglamento_fetri, p. 28]`) y el enlace al documento o a la ficha del medicamento en CIMA.
+- Una casilla **"Comparar con el LLM sin RAG"** que pone las dos respuestas lado a lado: es la comparativa de la página 3 en directo.
+
+Toda la app es un único archivo, `app.py`, que solo usa las funciones de `rag.py`. La base de Chroma y el modelo de embeddings se cargan **una sola vez** con `@st.cache_resource`, no en cada pregunta.
+
+## El prompt
+
+```{python}
+print(rag.PROMPT_RAG)
+```
+
+Las instrucciones son explícitas porque el modelo local es pequeño: le decimos qué contiene cada tipo de trozo, los pasos para una pregunta de medicamentos, que dé las cifras exactas **con la cita** y que diga "No lo sé con mis fuentes" solo si de verdad no está. Con un prompt más corto, qwen contestaba "no lo sé" incluso con la respuesta delante.
+
+## Qué LLM usa
+
+```{python}
+#| echo: false
+mostrar_codigo(rag.llamar_llm)
+```
+
+`llamar_llm()` es el **único sitio** del código que sabe qué LLM se usa:
+
+- **En local** usamos `qwen2.5:3b` con Ollama: gratis y sin internet. Es el modelo de la evaluación.
+- **En la app publicada** usamos **Gemini** (`gemini-3.5-flash-lite`) por API. Cloud Run no puede ejecutar un LLM con comodidad: probamos a meter Ollama dentro del contenedor y la imagen pesaba unos 6 GB, cada respuesta tardaba 10-30 segundos y necesitaba 4 CPU y 8 GB. Elegimos Flash-Lite porque está en el plan gratuito, es el más rápido y todavía respeta `temperature=0`.
+
+Se elige con una variable de entorno: si existe `GEMINI_API_KEY`, Gemini; si no, Ollama. La clave **nunca** está en el código ni en el repositorio: Cloud Run la lee de Secret Manager. En la llamada va en una cabecera, no en la URL, para que no salga en los registros.
+
+## Cómo está desplegada
+
+`rag_project/Dockerfile` construye una imagen con Python, las librerías y la colección `trozos_800` **ya indexada**, así que cada arranque no tiene que descargar ni indexar nada. Un solo comando la construye en Google Cloud Build y la publica:
+
+```bash
+gcloud run deploy asistente-triatlon --source rag_project --region europe-west1 \
+  --cpu 2 --memory 4Gi --max-instances 1 --timeout 3600 --session-affinity \
+  --set-secrets GEMINI_API_KEY=gemini-api-key:latest --allow-unauthenticated
+```
+
+Con 2 CPU, la primera pregunta después de un rato sin uso tarda alrededor de un minuto: Cloud Run arranca la app desde cero y carga el modelo de embeddings. Las siguientes, unos segundos. `--max-instances 1` limita el coste y `--session-affinity` mantiene a cada visitante en la misma copia, porque Streamlit usa una conexión abierta (websocket) con el navegador.

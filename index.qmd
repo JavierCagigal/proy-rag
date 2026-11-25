@@ -6,7 +6,27 @@ title: "Deporte con IA"
 
 *Alejandro, Miguel y Javier*
 
-## Trabajo 2: sistema RAG
+## Trabajo 2: un asistente de competición para triatletas
 
-<!-- Motivación (P3 con todos): asistente de competición para triatletas (reglamento, antidopaje y medicamentos de CIMA). Qué pregunta un triatleta que un chatbot genérico contesta mal,
-por qué un RAG lo arregla y enlaces a la app desplegada y al repositorio. -->
+Antes de una carrera, un triatleta se hace preguntas muy concretas: *¿me dejan usar neopreno con el agua a 22 ºC?*, *¿cuánto me penalizan por ir a rueda?*, *¿me da positivo el antigripal que estoy tomando?* Un chatbot genérico contesta a todas con seguridad, y muchas veces se lo inventa: no conoce el reglamento de este año ni los nombres comerciales de los medicamentos españoles.
+
+Hemos construido un **RAG** (*Retrieval-Augmented Generation*): antes de contestar, busca en los documentos oficiales los fragmentos que responden a la pregunta y se los da al LLM para que responda con ellos, citando la fuente y la página.
+
+Sus fuentes:
+
+- Los reglamentos de competición de **World Triathlon** y de la **Federación Española de Triatlón** (2026).
+- La **lista de sustancias prohibidas de la WADA** (2026).
+- **CIMA**, la base de datos de la Agencia Española del Medicamento, para saber qué principio activo lleva cada medicamento y cómo se toma.
+
+## Enlaces
+
+- **App:** [asistente-triatlon-921790710609.europe-west1.run.app](https://asistente-triatlon-921790710609.europe-west1.run.app). La primera pregunta tras un rato sin uso tarda alrededor de un minuto, porque Cloud Run arranca la app desde cero.
+- **Código:** [github.com/JavierCagigal/proy-rag](https://github.com/JavierCagigal/proy-rag)
+
+## Las páginas
+
+1. **Datos**: de dónde salen los documentos y cómo se descargan y limpian sin pasos manuales.
+2. **Arquitectura y chunking**: cómo se trocean y se buscan, y el experimento para elegir el tamaño de trozo.
+3. **Sin RAG frente a con RAG**: diez preguntas al mismo modelo, con y sin los documentos.
+4. **App**: la interfaz, el LLM y el despliegue.
+5. **Conclusiones**: qué hemos demostrado, sus límites y qué haríamos después.

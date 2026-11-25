@@ -1,0 +1,8 @@
+# Lo que NO se sube a Cloud Build al desplegar (la imagen solo necesita src/, app.py, corpus.jsonl y arrancar.sh).
+chroma/
+data/raw/
+resultados/
+evaluacion/
+_freeze/
+*.qmd
+__pycache__/
