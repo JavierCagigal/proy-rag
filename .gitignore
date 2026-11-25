@@ -1,0 +1,13 @@
+.venv/
+.env
+rag_project/data/raw/*
+!rag_project/data/raw/.gitkeep
+rag_project/chroma/
+_site/
+.quarto/
+__pycache__/
+.ipynb_checkpoints/
+**/*.quarto_ipynb
+.DS_Store
+
+/.quarto/

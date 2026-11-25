@@ -1,0 +1,121 @@
+---
+title: "3. Sin RAG frente a con RAG"
+---
+
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import Markdown
+
+preguntas = pd.read_csv("evaluacion/preguntas.csv")
+qwen = pd.read_csv("resultados/comparativa.csv")
+gemini = pd.read_csv("resultados/comparativa_gemini.csv")
+ORDEN = ["correcta", "parcial", "inventada", "no sabe"]
+
+
+def recuento(comparativa):
+    return pd.DataFrame({
+        "Sin RAG": comparativa.veredicto_sin_rag.value_counts(),
+        "Con RAG": comparativa.veredicto_con_rag.value_counts(),
+    }).reindex(ORDEN).fillna(0).astype(int)
+
+
+def caso(comparativa, id_pregunta):
+    """Una pregunta con la respuesta esperada y las dos respuestas, como cita."""
+    f = comparativa.set_index("id").loc[id_pregunta]
+    recorta = lambda texto: " ".join(texto.split())[:550]
+    return Markdown(
+        f"**Pregunta {id_pregunta}.** {f.pregunta}\n\n"
+        f"*Respuesta correcta:* {f.respuesta_esperada}\n\n"
+        f"> **Sin RAG** ({f.veredicto_sin_rag}): {recorta(f.respuesta_sin_rag)}\n\n"
+        f"> **Con RAG** ({f.veredicto_con_rag}): {recorta(f.respuesta_con_rag)}\n\n"
+        f"*Por qué:* {f.nota}"
+    )
+```
+
+Aquí se demuestra lo que pide la fase C: que el RAG responde mejor que el mismo LLM sin contexto. A cada modelo le hacemos **la misma pregunta de dos formas**: solo la pregunta, y la pregunta con los trozos recuperados. Como lo único que cambia es el contexto, la diferencia se debe al RAG.
+
+Lo hacemos con **dos modelos**:
+
+- `qwen2.5:3b` con Ollama, en local: pequeño (3.000 millones de parámetros), gratis y sin internet.
+- `gemini-3.5-flash-lite` de Google, por API: un modelo mucho mayor. Es el que usa la app publicada (página 4).
+
+## Las preguntas
+
+Diez preguntas de nicho con una respuesta exacta en nuestras fuentes. La última es de control: su respuesta **no** está en el corpus, para comprobar que con RAG dice que no lo sabe en vez de inventar.
+
+```{python}
+#| echo: false
+preguntas[["id", "pregunta", "fuente"]].style.hide(axis="index")
+```
+
+En `fuente`, `+` significa que hacen falta las dos (CIMA **y** la WADA) y `|` que vale cualquiera (la FETRI copia en español el reglamento de World Triathlon).
+
+## Resultado
+
+Cada respuesta tiene un veredicto: `correcta`, `parcial`, `inventada` (da un dato falso) o `no sabe`.
+
+```{python}
+#| echo: false
+fig, ejes = plt.subplots(1, 2, figsize=(10, 3.2), sharey=True)
+for eje, (nombre, comparativa) in zip(ejes, [("qwen2.5:3b", qwen), ("gemini-3.5-flash-lite", gemini)]):
+    recuento(comparativa).plot.bar(ax=eje, color=["#c8440c", "#0a6a93"], rot=0, legend=eje is ejes[0])
+    eje.set(title=nombre, ylabel="preguntas (de 10)", xlabel="", ylim=(0, 10))
+    eje.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+plt.show()
+pd.concat({"qwen2.5:3b": recuento(qwen), "gemini-3.5-flash-lite": recuento(gemini)}, axis=1)
+```
+
+- **Sin RAG, los dos se inventan cosas, y con total seguridad.** qwen se inventa 9 de 10: que el neopreno se prohíbe "a partir de 28 ºC", que Adolonta "es adenosina", que Frenadol "lleva desmopánico". Gemini sabe más (acierta las 2 más conocidas), pero aun así se inventa 4: la más grave, que el propranolol **está prohibido en triatlón**, cuando no lo está.
+- **Con RAG, ninguno de los dos inventa datos de fuera**: todo sale de los trozos, con su cita, y en la pregunta de control dicen que no lo saben.
+- **Con RAG, el modelo grande acierta casi todo**: Gemini pasa de 2 a **9 correctas y 0 inventadas**. qwen se queda en 2 correctas y 5 parciales, y en dos preguntas lee mal el contexto hasta dar una respuesta peligrosa (que el Frenadol "no da positivo"). La recuperación es la misma para los dos (trae el dato exacto en 8 de 9 preguntas, página 2): la diferencia está en **leer bien** los trozos, y ahí el tamaño del modelo importa.
+- **Lo único que falla con Gemini y RAG** es la del Frenadol: contesta "no lo sé", porque el trozo con el umbral de 150 µg/mL no se recupera (la limitación de la página 2). Es mejor que inventar.
+- **El prompt también importa.** En una primera versión, Gemini contestaba "no lo sé" en 2 preguntas que tenía delante (por ejemplo, en la de Sumial, porque el triatlón *no aparece* en la lista). Añadimos dos reglas al prompt: empezar por la respuesta directa, y que si algo solo se aplica en ciertos casos y la pregunta no es uno de ellos, la respuesta es "no". Con eso pasó de 7 a 9 correctas.
+
+## Tres casos (Gemini)
+
+```{python}
+#| echo: false
+caso(gemini, 9)
+```
+
+```{python}
+#| echo: false
+caso(gemini, 2)
+```
+
+```{python}
+#| echo: false
+caso(gemini, 10)
+```
+
+## El mismo caso con el modelo pequeño (qwen)
+
+```{python}
+#| echo: false
+caso(qwen, 8)
+```
+
+## Todas las respuestas
+
+::: {.panel-tabset}
+
+### Gemini
+
+```{python}
+#| echo: false
+gemini[["id", "veredicto_sin_rag", "veredicto_con_rag", "nota"]].style.hide(axis="index")
+```
+
+### qwen
+
+```{python}
+#| echo: false
+qwen[["id", "veredicto_sin_rag", "veredicto_con_rag", "nota"]].style.hide(axis="index")
+```
+
+:::
+
+Las respuestas completas, con los trozos recuperados, están en `resultados/comparativa.csv` (qwen) y `resultados/comparativa_gemini.csv` (Gemini). Se generan con `python src/evaluar.py`: sin la variable `GEMINI_API_KEY` usa qwen y con ella, Gemini. Los veredictos se ponen a mano después.
