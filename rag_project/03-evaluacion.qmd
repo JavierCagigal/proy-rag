@@ -41,6 +41,38 @@ Lo hacemos con **dos modelos**:
 - `qwen2.5:3b` con Ollama, en local: pequeño (3.000 millones de parámetros), gratis y sin internet.
 - `gemini-3.5-flash-lite` de Google, por API: un modelo mucho mayor. Es el que usa la app publicada (página 4).
 
+::: {.callout-note}
+## Un experimento justo
+
+Todo es igual en las dos versiones: el mismo modelo, la misma pregunta, temperatura 0 y la respuesta esperada escrita antes de preguntar. Lo único que cambia es si el modelo recibe los trozos recuperados. Es como en el Trabajo 1, cuando cambiábamos un solo hiperparámetro cada vez para saber qué efecto tenía.
+:::
+
+::: {.panel-tabset}
+
+### Sin RAG
+
+```python
+def responder_sin_rag(pregunta):
+    """El mismo LLM, sin contexto: es la línea base de la comparativa."""
+    return llamar_llm(pregunta)
+```
+
+El modelo solo recibe la pregunta y responde con lo que recuerda de su entrenamiento.
+
+### Con RAG
+
+```python
+def responder_con_rag(base, pregunta):
+    """Devuelve (respuesta, trozos) para poder enseñar las fuentes en la app."""
+    trozos = recuperar(base, pregunta)
+    contexto = "\n\n".join(f"{cita(t)}\n{t.page_content}" for t in trozos)
+    return llamar_llm(PROMPT_RAG.format(contexto=contexto, pregunta=pregunta)), trozos
+```
+
+Antes de preguntar, se recuperan los trozos más parecidos y se le pasan al mismo modelo, cada uno con su cita.
+
+:::
+
 ## Las preguntas
 
 Diez preguntas de nicho con una respuesta exacta en nuestras fuentes. La última es de control: su respuesta **no** está en el corpus, para comprobar que con RAG dice que no lo sabe en vez de inventar.
@@ -53,6 +85,28 @@ preguntas[["id", "pregunta", "fuente"]].style.hide(axis="index")
 En `fuente`, `+` significa que hacen falta las dos (CIMA **y** la WADA) y `|` que vale cualquiera (la FETRI copia en español el reglamento de World Triathlon).
 
 ## Resultado
+
+::: {layout-ncol=3}
+
+::: {.text-center}
+[2 → 9]{style="font-size: 2.6em; font-weight: 700; color: #2e7d32;"}
+
+correctas de Gemini (sin → con RAG)
+:::
+
+::: {.text-center}
+[4 → 0]{style="font-size: 2.6em; font-weight: 700; color: #c62828;"}
+
+inventadas de Gemini (sin → con RAG)
+:::
+
+::: {.text-center}
+[9 → 2]{style="font-size: 2.6em; font-weight: 700; color: #c62828;"}
+
+inventadas de qwen (sin → con RAG)
+:::
+
+:::
 
 Cada respuesta tiene un veredicto: `correcta`, `parcial`, `inventada` (da un dato falso) o `no sabe`.
 
@@ -68,8 +122,37 @@ plt.show()
 pd.concat({"qwen2.5:3b": recuento(qwen), "gemini-3.5-flash-lite": recuento(gemini)}, axis=1)
 ```
 
+```{python}
+#| echo: false
+COLORES = {"correcta": "#2e7d32", "parcial": "#f0a202", "no sabe": "#9e9e9e", "inventada": "#c62828"}
+columnas = [
+    ("qwen\nsin RAG", qwen.veredicto_sin_rag),
+    ("qwen\ncon RAG", qwen.veredicto_con_rag),
+    ("Gemini\nsin RAG", gemini.veredicto_sin_rag),
+    ("Gemini\ncon RAG", gemini.veredicto_con_rag),
+]
+filas = [f"P{i}" for i in qwen.id]
+
+fig, eje = plt.subplots(figsize=(8, 5.2))
+for c, (_, veredictos) in enumerate(columnas):
+    for f, veredicto in enumerate(veredictos):
+        eje.add_patch(plt.Rectangle((c + 0.04, f + 0.06), 0.92, 0.88, color=COLORES[veredicto]))
+        eje.text(c + 0.5, f + 0.5, veredicto, ha="center", va="center", color="white", fontsize=10, fontweight="bold")
+eje.set_xlim(0, len(columnas))
+eje.set_ylim(len(filas), 0)
+eje.set_xticks([c + 0.5 for c in range(len(columnas))], [nombre for nombre, _ in columnas])
+eje.set_yticks([f + 0.5 for f in range(len(filas))], filas)
+eje.xaxis.tick_top()
+eje.tick_params(length=0)
+for borde in eje.spines.values():
+    borde.set_visible(False)
+eje.set_title("Gemini con RAG: 9 correctas y ninguna inventada", pad=40, fontweight="bold")
+plt.tight_layout()
+plt.show()
+```
+
 - **Sin RAG, los dos se inventan cosas, y con total seguridad.** qwen se inventa 9 de 10: que el neopreno se prohíbe "a partir de 28 ºC", que Adolonta "es adenosina", que Frenadol "lleva desmopánico". Gemini sabe más (acierta las 2 más conocidas), pero aun así se inventa 4: la más grave, que el propranolol **está prohibido en triatlón**, cuando no lo está.
-- **Con RAG, ninguno de los dos inventa datos de fuera**: todo sale de los trozos, con su cita, y en la pregunta de control dicen que no lo saben.
+- **Con RAG, Gemini no inventa nada**: todo sale de los trozos, con su cita. qwen con RAG aún falla 2 (P6 y P7), y no porque falte el dato, sino porque lee mal los trozos.
 - **Con RAG, el modelo grande acierta casi todo**: Gemini pasa de 2 a **9 correctas y 0 inventadas**. qwen se queda en 2 correctas y 5 parciales, y en dos preguntas lee mal el contexto hasta dar una respuesta peligrosa (que el Frenadol "no da positivo"). La recuperación es la misma para los dos (trae el dato exacto en 8 de 9 preguntas, página 2): la diferencia está en **leer bien** los trozos, y ahí el tamaño del modelo importa.
 - **Lo único que falla con Gemini y RAG** es la del Frenadol: contesta "no lo sé", porque el trozo con el umbral de 150 µg/mL no se recupera (la limitación de la página 2). Es mejor que inventar.
 - **El prompt también importa.** En una primera versión, Gemini contestaba "no lo sé" en 2 preguntas que tenía delante (por ejemplo, en la de Sumial, porque el triatlón *no aparece* en la lista). Añadimos dos reglas al prompt: empezar por la respuesta directa, y que si algo solo se aplica en ciertos casos y la pregunta no es uno de ellos, la respuesta es "no". Con eso pasó de 7 a 9 correctas.
